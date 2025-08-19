@@ -4,7 +4,6 @@ import { ContentEditor } from './components/ContentEditor';
 import { useCurriculumAPI } from './hooks/useCurriculumAPI';
 import { useCurriculum } from './hooks/useCurriculum';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { DatabaseStatus } from './components/DatabaseStatus';
 
 function App() {
   const curriculum = useCurriculumAPI();
@@ -62,12 +61,6 @@ function App() {
 
   return (
     <div className="h-screen bg-gray-100 flex">
-      <DatabaseStatus 
-        isConnected={!curriculum.loading && !curriculum.error}
-        isLoading={curriculum.loading}
-        error={curriculum.error}
-      />
-      
       <Sidebar
         curriculums={curriculum.data.curriculums}
         selectedPath={selectedPath}
