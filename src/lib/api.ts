@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://teacherportal.bylinelms.com/api';
 
 class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -167,4 +167,11 @@ export const updateActivity = (id: string, data: { name?: string; type?: string;
 export const deleteActivity = (id: string) =>
   apiRequest(`/activities/${id}`, {
     method: 'DELETE',
+  });
+
+// Curriculum upload
+export const uploadCurriculum = (data: { curriculums: any[] }) =>
+  apiRequest('/curriculum/upload', {
+    method: 'POST',
+    body: JSON.stringify(data),
   });

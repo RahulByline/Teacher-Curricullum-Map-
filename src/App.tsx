@@ -45,7 +45,7 @@ function App() {
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left">
             <h3 className="font-semibold text-amber-800 mb-2">Setup Required:</h3>
                     <p className="text-sm text-amber-700">
-          Please ensure the backend server is running on http://localhost:3001
+          Please ensure the backend server is running
         </p>
           </div>
           <button

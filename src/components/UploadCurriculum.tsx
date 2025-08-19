@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
+// @ts-ignore
 import Papa from 'papaparse';
+import { uploadCurriculum } from '../lib/api';
 
 interface UploadCurriculumProps {
   onClose: () => void;
@@ -209,7 +211,7 @@ export function UploadCurriculum({ onClose, onUploadSuccess }: UploadCurriculumP
     Papa.parse(selectedFile, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: (results: any) => {
         if (results.errors.length > 0) {
           setErrorMessage('Error parsing CSV file. Please check the format.');
           return;
@@ -220,7 +222,7 @@ export function UploadCurriculum({ onClose, onUploadSuccess }: UploadCurriculumP
           setPreviewData(parsedData[0]); // Show preview of first curriculum
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         setErrorMessage('Error reading CSV file: ' + error.message);
       }
     });
@@ -237,7 +239,7 @@ export function UploadCurriculum({ onClose, onUploadSuccess }: UploadCurriculumP
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
-        complete: async (results) => {
+        complete: async (results: any) => {
           if (results.errors.length > 0) {
             setErrorMessage('Error parsing CSV file. Please check the format.');
             setIsUploading(false);
@@ -246,19 +248,8 @@ export function UploadCurriculum({ onClose, onUploadSuccess }: UploadCurriculumP
 
           const parsedData = parseCSVData(results.data as CSVRow[]);
 
-          // Send to backend
-          const response = await fetch('http://localhost:3001/api/curriculum/upload', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ curriculums: parsedData }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Upload failed');
-          }
+          // Send to backend using API function
+          await uploadCurriculum({ curriculums: parsedData });
 
           setUploadStatus('success');
           setIsUploading(false);
@@ -269,7 +260,7 @@ export function UploadCurriculum({ onClose, onUploadSuccess }: UploadCurriculumP
             onClose();
           }, 2000);
         },
-        error: (error) => {
+        error: (error: any) => {
           setErrorMessage('Error reading CSV file: ' + error.message);
           setIsUploading(false);
         }
