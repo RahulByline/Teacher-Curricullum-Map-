@@ -569,6 +569,142 @@ app.delete('/api/activities/:id', async (req, res) => {
   }
 });
 
+// CSV Upload endpoint
+app.post('/api/curriculum/upload', async (req, res) => {
+  const connection = await pool.getConnection();
+  
+  try {
+    const { curriculums } = req.body;
+    
+    if (!curriculums || !Array.isArray(curriculums)) {
+      return res.status(400).json({ error: 'Invalid curriculum data' });
+    }
+
+    const results = {
+      curriculumsCreated: 0,
+      gradesCreated: 0,
+      booksCreated: 0,
+      unitsCreated: 0,
+      lessonsCreated: 0,
+      stagesCreated: 0,
+      activitiesCreated: 0,
+      errors: []
+    };
+
+    for (const curriculumData of curriculums) {
+      try {
+        // Create curriculum
+        const curriculumId = generateUUID();
+        await connection.execute(
+          'INSERT INTO curriculums (id, name, description) VALUES (?, ?, ?)',
+          [curriculumId, curriculumData.name, curriculumData.description || '']
+        );
+        results.curriculumsCreated++;
+
+        // Process grades
+        for (const gradeData of curriculumData.grades || []) {
+          const gradeId = generateUUID();
+          await connection.execute(
+            'INSERT INTO grades (id, curriculum_id, name) VALUES (?, ?, ?)',
+            [gradeId, curriculumId, gradeData.name]
+          );
+          results.gradesCreated++;
+
+          // Process books
+          for (const bookData of gradeData.books || []) {
+            const bookId = generateUUID();
+            await connection.execute(
+              'INSERT INTO books (id, grade_id, name) VALUES (?, ?, ?)',
+              [bookId, gradeId, bookData.name]
+            );
+            results.booksCreated++;
+
+            // Process units
+            for (const unitData of bookData.units || []) {
+              const unitId = generateUUID();
+              await connection.execute(
+                'INSERT INTO units (id, book_id, name, learning_objectives, total_time) VALUES (?, ?, ?, ?, ?)',
+                [
+                  unitId, 
+                  bookId, 
+                  unitData.name, 
+                  stringifyArray(unitData.learningObjectives || []),
+                  unitData.duration || ''
+                ]
+              );
+              results.unitsCreated++;
+
+              // Process lessons
+              for (const lessonData of unitData.lessons || []) {
+                const lessonId = generateUUID();
+                await connection.execute(
+                  'INSERT INTO lessons (id, unit_id, name, learning_objectives, duration) VALUES (?, ?, ?, ?, ?)',
+                  [
+                    lessonId, 
+                    unitId, 
+                    lessonData.name, 
+                    stringifyArray(lessonData.learningObjectives || []),
+                    lessonData.duration || ''
+                  ]
+                );
+                results.lessonsCreated++;
+
+                // Process stages
+                for (const stageData of lessonData.stages || []) {
+                  const stageId = generateUUID();
+                  await connection.execute(
+                    'INSERT INTO stages (id, lesson_id, name, learning_objectives, duration) VALUES (?, ?, ?, ?, ?)',
+                    [
+                      stageId, 
+                      lessonId, 
+                      stageData.name, 
+                      stringifyArray(stageData.learningObjectives || []),
+                      stageData.duration || ''
+                    ]
+                  );
+                  results.stagesCreated++;
+
+                  // Process activities
+                  for (const activityData of stageData.activities || []) {
+                    const activityId = generateUUID();
+                    await connection.execute(
+                      'INSERT INTO activities (id, stage_id, name, type, learning_objectives, duration) VALUES (?, ?, ?, ?, ?, ?)',
+                      [
+                        activityId, 
+                        stageId, 
+                        activityData.name, 
+                        activityData.type || '',
+                        stringifyArray(activityData.learningObjectives || []),
+                        activityData.duration || ''
+                      ]
+                    );
+                    results.activitiesCreated++;
+                  }
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing curriculum ${curriculumData.name}:`, error);
+        results.errors.push(`Failed to process curriculum "${curriculumData.name}": ${error.message}`);
+      }
+    }
+
+    connection.release();
+    
+    res.status(201).json({
+      message: 'Curriculum upload completed',
+      results
+    });
+    
+  } catch (error) {
+    connection.release();
+    console.error('Error uploading curriculum:', error);
+    res.status(500).json({ error: 'Failed to upload curriculum' });
+  }
+});
+
 // Error handling middleware
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, BookOpen, GraduationCap, FileText, Play, Target, Clock, Users, Zap, CheckCircle, Settings, BarChart3, Share2, Eye, Grid3X3, Map, X, Palette, ArrowLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2, BookOpen, GraduationCap, FileText, Play, Target, Clock, Users, Zap, CheckCircle, Settings, BarChart3, Share2, Eye, Grid3X3, Map, X, Palette, ArrowLeft, Upload } from 'lucide-react';
 import { Curriculum, Grade, Book, Unit, Lesson, Stage, Activity, Standard, StandardCode, ActivityType } from '../types/curriculum';
 import { LearningObjectivesEditor } from './LearningObjectivesEditor';
 import { TimeInput } from './TimeInput';
@@ -12,6 +12,7 @@ import { CurriculumGridView } from './CurriculumGridView';
 import { ISTEStandardsApp } from './ISTEStandardsApp';
 import { ActivityTypesManager } from './ActivityTypesManager';
 import { LogoUploader } from './LogoUploader';
+import { UploadCurriculum } from './UploadCurriculum';
 import { useSettings } from '../hooks/useSettings';
 
 interface ContentEditorProps {
@@ -101,6 +102,7 @@ export function ContentEditor({
   const [activityAddedMessage, setActivityAddedMessage] = useState('');
   const [viewMode, setViewMode] = useState<'overview' | 'mindmap' | 'grid'>('overview');
   const [showISTEApp, setShowISTEApp] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showAddStage, setShowAddStage] = useState(false);
   const [newStage, setNewStage] = useState<{ name: string; learningObjectives: string[]; duration: string }>({ 
     name: '', 
@@ -511,6 +513,14 @@ export function ContentEditor({
                   <Target size={18} />
                   <span>ISTE Standards App</span>
                 </div>
+              </button>
+              
+              <button
+                onClick={() => setShowUploadModal(true)}
+                className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+              >
+                <Upload size={18} />
+                <span>Upload CSV</span>
               </button>
               
               <button
@@ -2047,6 +2057,17 @@ export function ContentEditor({
               </div>
             </div>
           </div>
+        )}
+
+        {/* Upload Curriculum Modal */}
+        {showUploadModal && (
+          <UploadCurriculum
+            onClose={() => setShowUploadModal(false)}
+            onUploadSuccess={() => {
+              // Refresh the curriculum data
+              window.location.reload();
+            }}
+          />
         )}
       </>
     );

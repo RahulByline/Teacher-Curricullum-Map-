@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Target, Users, Shield, Lightbulb, Zap, Globe, Code, Plus, Edit2, Trash2, Save, X, ChevronDown, ChevronRight, Search, Filter, BarChart3, Eye, Link } from 'lucide-react';
 
 // ISTE Standards Structure
@@ -39,9 +39,41 @@ export function ISTEStandardsApp({ curriculums, onClose }: ISTEStandardsAppProps
   const [searchTerm, setSearchTerm] = useState('');
   const [editingItem, setEditingItem] = useState<{ type: string; id: string } | null>(null);
   const [showAddForm, setShowAddForm] = useState<{ type: 'category' | 'standard' | 'indicator'; parentId?: string } | null>(null);
+  
+  // Form state for adding new items
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    categoryCode: ''
+  });
+  
+  const [newStandard, setNewStandard] = useState({
+    code: '',
+    title: '',
+    description: '',
+    gradeLevel: 'All' as 'K-2' | '3-5' | '6-8' | '9-12' | 'All'
+  });
+  
+  const [newIndicator, setNewIndicator] = useState({
+    code: '',
+    description: '',
+    examples: [''],
+    assessmentCriteria: ['']
+  });
 
-  // Initial ISTE Standards Data
-  const [isteStandards, setIsteStandards] = useState<ISTEStandard[]>([
+  // Load ISTE Standards from localStorage or use default data
+  const [isteStandards, setIsteStandards] = useState<ISTEStandard[]>(() => {
+    const saved = localStorage.getItem('isteStandards');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Error parsing saved ISTE standards:', error);
+        // Return default data if parsing fails
+      }
+    }
+    
+    // Default ISTE Standards Data
+    return [
     {
       id: 'empowered-learner',
       category: 'Empowered Learner',
@@ -143,7 +175,13 @@ export function ISTEStandardsApp({ curriculums, onClose }: ISTEStandardsAppProps
         }
       ]
     }
-  ]);
+  ];
+  });
+
+  // Save ISTE Standards to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('isteStandards', JSON.stringify(isteStandards));
+  }, [isteStandards]);
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -179,6 +217,129 @@ export function ISTEStandardsApp({ curriculums, onClose }: ISTEStandardsAppProps
       newExpanded.add(standardId);
     }
     setExpandedStandards(newExpanded);
+  };
+
+  // Helper function to generate unique IDs
+  const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  // Add new category
+  const handleAddCategory = () => {
+    if (!newCategory.name.trim() || !newCategory.categoryCode.trim()) return;
+
+    const newCategoryData: ISTEStandard = {
+      id: generateId(),
+      category: newCategory.name as any,
+      categoryCode: newCategory.categoryCode as any,
+      standards: []
+    };
+
+    setIsteStandards(prev => [...prev, newCategoryData]);
+    setNewCategory({ name: '', categoryCode: '' });
+    setShowAddForm(null);
+  };
+
+  // Add new standard
+  const handleAddStandard = () => {
+    if (!newStandard.code.trim() || !newStandard.title.trim() || !newStandard.description.trim()) return;
+
+    const newStandardData: ISTESubStandard = {
+      id: generateId(),
+      code: newStandard.code,
+      title: newStandard.title,
+      description: newStandard.description,
+      gradeLevel: newStandard.gradeLevel,
+      indicators: []
+    };
+
+    setIsteStandards(prev => prev.map(category => {
+      if (category.id === showAddForm?.parentId) {
+        return {
+          ...category,
+          standards: [...category.standards, newStandardData]
+        };
+      }
+      return category;
+    }));
+
+    setNewStandard({ code: '', title: '', description: '', gradeLevel: 'All' });
+    setShowAddForm(null);
+  };
+
+  // Add new indicator
+  const handleAddIndicator = () => {
+    if (!newIndicator.code.trim() || !newIndicator.description.trim()) return;
+
+    const newIndicatorData: ISTEIndicator = {
+      id: generateId(),
+      code: newIndicator.code,
+      description: newIndicator.description,
+      examples: newIndicator.examples.filter(ex => ex.trim()),
+      assessmentCriteria: newIndicator.assessmentCriteria.filter(criteria => criteria.trim())
+    };
+
+    setIsteStandards(prev => prev.map(category => ({
+      ...category,
+      standards: category.standards.map(standard => {
+        if (standard.id === showAddForm?.parentId) {
+          return {
+            ...standard,
+            indicators: [...standard.indicators, newIndicatorData]
+          };
+        }
+        return standard;
+      })
+    })));
+
+    setNewIndicator({ code: '', description: '', examples: [''], assessmentCriteria: [''] });
+    setShowAddForm(null);
+  };
+
+  // Add example to indicator
+  const addExample = () => {
+    setNewIndicator(prev => ({
+      ...prev,
+      examples: [...prev.examples, '']
+    }));
+  };
+
+  // Remove example from indicator
+  const removeExample = (index: number) => {
+    setNewIndicator(prev => ({
+      ...prev,
+      examples: prev.examples.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update example
+  const updateExample = (index: number, value: string) => {
+    setNewIndicator(prev => ({
+      ...prev,
+      examples: prev.examples.map((ex, i) => i === index ? value : ex)
+    }));
+  };
+
+  // Add assessment criteria to indicator
+  const addAssessmentCriteria = () => {
+    setNewIndicator(prev => ({
+      ...prev,
+      assessmentCriteria: [...prev.assessmentCriteria, '']
+    }));
+  };
+
+  // Remove assessment criteria from indicator
+  const removeAssessmentCriteria = (index: number) => {
+    setNewIndicator(prev => ({
+      ...prev,
+      assessmentCriteria: prev.assessmentCriteria.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Update assessment criteria
+  const updateAssessmentCriteria = (index: number, value: string) => {
+    setNewIndicator(prev => ({
+      ...prev,
+      assessmentCriteria: prev.assessmentCriteria.map((criteria, i) => i === index ? value : criteria)
+    }));
   };
 
   const renderStandardsTab = () => (
@@ -682,6 +843,241 @@ export function ISTEStandardsApp({ curriculums, onClose }: ISTEStandardsAppProps
           {activeTab === 'mapping' && renderMappingTab()}
           {activeTab === 'reports' && renderReportsTab()}
         </div>
+
+        {/* Add Category Modal */}
+        {showAddForm?.type === 'category' && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Add New ISTE Category</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>
+                  <input
+                    type="text"
+                    value={newCategory.name}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Knowledge Constructor"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category Code *</label>
+                  <input
+                    type="text"
+                    value={newCategory.categoryCode}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, categoryCode: e.target.value }))}
+                    placeholder="e.g., 3"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAddForm(null)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddCategory}
+                  disabled={!newCategory.name.trim() || !newCategory.categoryCode.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Add Category
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Standard Modal */}
+        {showAddForm?.type === 'standard' && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Standard</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Standard Code *</label>
+                  <input
+                    type="text"
+                    value={newStandard.code}
+                    onChange={(e) => setNewStandard(prev => ({ ...prev, code: e.target.value }))}
+                    placeholder="e.g., 1.3"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                  <input
+                    type="text"
+                    value={newStandard.title}
+                    onChange={(e) => setNewStandard(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g., Evaluate Information"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                  <textarea
+                    value={newStandard.description}
+                    onChange={(e) => setNewStandard(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter standard description..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Grade Level</label>
+                  <select
+                    value={newStandard.gradeLevel}
+                    onChange={(e) => setNewStandard(prev => ({ ...prev, gradeLevel: e.target.value as any }))}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="All">All Grades</option>
+                    <option value="K-2">K-2</option>
+                    <option value="3-5">3-5</option>
+                    <option value="6-8">6-8</option>
+                    <option value="9-12">9-12</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAddForm(null)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddStandard}
+                  disabled={!newStandard.code.trim() || !newStandard.title.trim() || !newStandard.description.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Add Standard
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Indicator Modal */}
+        {showAddForm?.type === 'indicator' && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Indicator</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Indicator Code *</label>
+                  <input
+                    type="text"
+                    value={newIndicator.code}
+                    onChange={(e) => setNewIndicator(prev => ({ ...prev, code: e.target.value }))}
+                    placeholder="e.g., 1.3.a"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                  <textarea
+                    value={newIndicator.description}
+                    onChange={(e) => setNewIndicator(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter indicator description..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Examples</label>
+                  <div className="space-y-2">
+                    {newIndicator.examples.map((example, index) => (
+                      <div key={index} className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={example}
+                          onChange={(e) => updateExample(index, e.target.value)}
+                          placeholder={`Example ${index + 1}`}
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {newIndicator.examples.length > 1 && (
+                          <button
+                            onClick={() => removeExample(index)}
+                            className="px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={addExample}
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                    >
+                      + Add Example
+                    </button>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Assessment Criteria</label>
+                  <div className="space-y-2">
+                    {newIndicator.assessmentCriteria.map((criteria, index) => (
+                      <div key={index} className="flex space-x-2">
+                        <input
+                          type="text"
+                          value={criteria}
+                          onChange={(e) => updateAssessmentCriteria(index, e.target.value)}
+                          placeholder={`Assessment criteria ${index + 1}`}
+                          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                        {newIndicator.assessmentCriteria.length > 1 && (
+                          <button
+                            onClick={() => removeAssessmentCriteria(index)}
+                            className="px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      onClick={addAssessmentCriteria}
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+                    >
+                      + Add Assessment Criteria
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAddForm(null)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddIndicator}
+                  disabled={!newIndicator.code.trim() || !newIndicator.description.trim()}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Add Indicator
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
