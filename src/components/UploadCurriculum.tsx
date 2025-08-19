@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, X } from 'lucide-react';
-// @ts-ignore
 import Papa from 'papaparse';
 import { uploadCurriculum } from '../lib/api';
 
