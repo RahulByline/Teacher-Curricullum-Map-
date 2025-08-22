@@ -62,9 +62,9 @@ export function useCurriculumAPI() {
   };
 
   // Grade operations
-  const addGrade = async (curriculumId: string, name: string) => {
+  const addGrade = async (curriculumId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createGrade({ curriculumId, name });
+      await api.createGrade({ curriculumId, name, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding grade:', err);
@@ -93,9 +93,9 @@ export function useCurriculumAPI() {
   };
 
   // Book operations
-  const addBook = async (curriculumId: string, gradeId: string, name: string) => {
+  const addBook = async (curriculumId: string, gradeId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createBook({ gradeId, name });
+      await api.createBook({ gradeId, name, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding book:', err);

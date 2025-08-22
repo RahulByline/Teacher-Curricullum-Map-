@@ -74,10 +74,14 @@ const initialData: CurriculumData = {
         {
           id: 'kg1',
           name: 'KG 1',
+          learningObjectives: ['Develop foundational skills', 'Build social awareness'],
+          duration: '1 year',
           books: [
             {
               id: 'book3',
               name: 'Seasons and Weather - Book 3',
+              learningObjectives: ['Understand seasonal changes', 'Learn weather patterns'],
+              duration: '6 months',
               units: [
                 {
                   id: 'unit1',
@@ -397,6 +401,8 @@ export function useCurriculum() {
     const newGrade: Grade = {
       id: generateId(),
       name,
+      learningObjectives: [],
+      duration: '',
       books: []
     };
     setData(prev => ({
@@ -444,6 +450,8 @@ export function useCurriculum() {
     const newBook: Book = {
       id: generateId(),
       name,
+      learningObjectives: [],
+      duration: '',
       units: []
     };
     setData(prev => ({

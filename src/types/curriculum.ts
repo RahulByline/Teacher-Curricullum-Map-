@@ -60,6 +60,8 @@ export interface Unit {
 export interface Book {
   id: string;
   name: string;
+  learningObjectives: string[];
+  duration: string;
   units: Unit[];
   standardCodes?: string[]; // Array of standard code IDs
 }
@@ -67,6 +69,8 @@ export interface Book {
 export interface Grade {
   id: string;
   name: string;
+  learningObjectives: string[];
+  duration: string;
   books: Book[];
   standardCodes?: string[]; // Array of standard code IDs
 }

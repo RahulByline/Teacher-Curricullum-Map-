@@ -1091,6 +1091,38 @@ export function ContentEditor({
                               sum + book.units.reduce((unitSum, unit) => unitSum + unit.lessons.length, 0), 0)} lessons
                           </span>
                         </div>
+                        
+                        {/* Duration */}
+                        {grade.duration && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center space-x-2">
+                              <Clock size={14} className="text-indigo-500" />
+                              <span className="text-xs font-medium text-gray-700">Duration:</span>
+                              <span className="text-xs text-gray-600">{grade.duration}</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Learning Objectives */}
+                        {grade.learningObjectives && grade.learningObjectives.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Target size={14} className="text-blue-500" />
+                              <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
+                            </div>
+                            <ul className="text-xs text-gray-600 space-y-1">
+                              {grade.learningObjectives.slice(0, 2).map((objective, idx) => (
+                                <li key={idx} className="flex items-start space-x-1">
+                                  <span className="text-blue-400 mt-0.5">•</span>
+                                  <span className="leading-tight">{objective}</span>
+                                </li>
+                              ))}
+                              {grade.learningObjectives.length > 2 && (
+                                <li className="text-gray-400 text-xs">+{grade.learningObjectives.length - 2} more...</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1229,9 +1261,15 @@ export function ContentEditor({
                         timeUnit = 'Weeks';
                       }
                       
-                      onUpdateGrade(curriculum.id, grade.id, { duration: timeValue + ' ' + timeUnit });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                        duration: timeValue + ' ' + timeUnit,
+                        learningObjectives: grade.learningObjectives || []
+                      });
                     } else if (e.target.value === '') {
-                      onUpdateGrade(curriculum.id, grade.id, { duration: '' });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                        duration: '',
+                        learningObjectives: grade.learningObjectives || []
+                      });
                     }
                   }}
                   placeholder="0.0"
@@ -1272,7 +1310,10 @@ export function ContentEditor({
                       newValue = Math.round(currentValue * 7);
                     }
                     
-                    onUpdateGrade(curriculum.id, grade.id, { duration: newValue + ' ' + newUnit });
+                    onUpdateGrade(curriculum.id, grade.id, { 
+                      duration: newValue + ' ' + newUnit,
+                      learningObjectives: grade.learningObjectives || []
+                    });
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
@@ -1300,7 +1341,10 @@ export function ContentEditor({
                       <button
                         onClick={() => {
                           const updatedObjectives = grade.learningObjectives?.filter((_, i) => i !== index) || [];
-                          onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                          onUpdateGrade(curriculum.id, grade.id, { 
+                            learningObjectives: updatedObjectives,
+                            duration: grade.duration || ''
+                          });
                         }}
                         className="text-red-500 hover:text-red-700 transition-colors"
                       >
@@ -1322,7 +1366,10 @@ export function ContentEditor({
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && newGradeLearningObjective.trim()) {
                       const updatedObjectives = [...(grade.learningObjectives || []), newGradeLearningObjective.trim()];
-                      onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                        learningObjectives: updatedObjectives,
+                        duration: grade.duration || ''
+                      });
                       setNewGradeLearningObjective('');
                     }
                   }}
@@ -1331,7 +1378,10 @@ export function ContentEditor({
                   onClick={() => {
                     if (newGradeLearningObjective.trim()) {
                       const updatedObjectives = [...(grade.learningObjectives || []), newGradeLearningObjective.trim()];
-                      onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                        learningObjectives: updatedObjectives,
+                        duration: grade.duration || ''
+                      });
                       setNewGradeLearningObjective('');
                     }
                   }}
@@ -1535,9 +1585,15 @@ export function ContentEditor({
                         timeUnit = 'Weeks';
                       }
                       
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { duration: timeValue + ' ' + timeUnit });
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                        duration: timeValue + ' ' + timeUnit,
+                        learningObjectives: book.learningObjectives || []
+                      });
                     } else if (e.target.value === '') {
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { duration: '' });
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                        duration: '',
+                        learningObjectives: book.learningObjectives || []
+                      });
                     }
                   }}
                   placeholder="0.0"
@@ -1578,7 +1634,10 @@ export function ContentEditor({
                       newValue = Math.round(currentValue * 7);
                     }
                     
-                    onUpdateBook(curriculum.id, grade!.id, book.id, { duration: newValue + ' ' + newUnit });
+                    onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                      duration: newValue + ' ' + newUnit,
+                      learningObjectives: book.learningObjectives || []
+                    });
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
@@ -1606,7 +1665,10 @@ export function ContentEditor({
                       <button
                         onClick={() => {
                           const updatedObjectives = book.learningObjectives?.filter((_, i) => i !== index) || [];
-                          onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                          onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                            learningObjectives: updatedObjectives,
+                            duration: book.duration || ''
+                          });
                         }}
                         className="text-red-500 hover:text-red-700 transition-colors"
                       >
@@ -1628,7 +1690,10 @@ export function ContentEditor({
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && newBookLearningObjective.trim()) {
                       const updatedObjectives = [...(book.learningObjectives || []), newBookLearningObjective.trim()];
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                        learningObjectives: updatedObjectives,
+                        duration: book.duration || ''
+                      });
                       setNewBookLearningObjective('');
                     }
                   }}
@@ -1637,7 +1702,10 @@ export function ContentEditor({
                   onClick={() => {
                     if (newBookLearningObjective.trim()) {
                       const updatedObjectives = [...(book.learningObjectives || []), newBookLearningObjective.trim()];
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                        learningObjectives: updatedObjectives,
+                        duration: book.duration || ''
+                      });
                       setNewBookLearningObjective('');
                     }
                   }}

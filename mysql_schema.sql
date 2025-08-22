@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS grades (
   id VARCHAR(36) PRIMARY KEY,
   curriculum_id VARCHAR(36) NOT NULL,
   name VARCHAR(255) NOT NULL,
+  learning_objectives JSON DEFAULT NULL,
+  duration VARCHAR(100) DEFAULT '',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (curriculum_id) REFERENCES curriculums(id) ON DELETE CASCADE
@@ -29,6 +31,8 @@ CREATE TABLE IF NOT EXISTS books (
   id VARCHAR(36) PRIMARY KEY,
   grade_id VARCHAR(36) NOT NULL,
   name VARCHAR(255) NOT NULL,
+  learning_objectives JSON DEFAULT NULL,
+  duration VARCHAR(100) DEFAULT '',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (grade_id) REFERENCES grades(id) ON DELETE CASCADE
@@ -102,11 +106,11 @@ CREATE INDEX idx_activities_created_at ON activities(created_at);
 INSERT INTO curriculums (id, name, description) VALUES 
 ('sample-curriculum-1', 'Sample Curriculum', 'A sample curriculum for testing purposes');
 
-INSERT INTO grades (id, curriculum_id, name) VALUES 
-('sample-grade-1', 'sample-curriculum-1', 'Grade 9');
+INSERT INTO grades (id, curriculum_id, name, learning_objectives, duration) VALUES 
+('sample-grade-1', 'sample-curriculum-1', 'Grade 9', '["Master fundamental concepts", "Develop critical thinking skills"]', '1 year');
 
-INSERT INTO books (id, grade_id, name) VALUES 
-('sample-book-1', 'sample-grade-1', 'Mathematics Book 1');
+INSERT INTO books (id, grade_id, name, learning_objectives, duration) VALUES 
+('sample-book-1', 'sample-grade-1', 'Mathematics Book 1', '["Understand algebraic concepts", "Solve mathematical problems"]', '6 months');
 
 INSERT INTO units (id, book_id, name, learning_objectives, total_time) VALUES 
 ('sample-unit-1', 'sample-book-1', 'Introduction to Algebra', '["Understand basic algebraic concepts", "Solve simple equations"]', '2 hours');
