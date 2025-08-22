@@ -140,11 +140,15 @@ app.get('/api/curriculums', async (req, res) => {
         .map(grade => ({
           id: grade.id,
           name: grade.name,
+          learningObjectives: parseJSONArray(grade.learning_objectives),
+          duration: grade.duration,
           books: booksData
             .filter(book => book.grade_id === grade.id)
             .map(book => ({
               id: book.id,
               name: book.name,
+              learningObjectives: parseJSONArray(book.learning_objectives),
+              duration: book.duration,
               units: unitsData
                 .filter(unit => unit.book_id === book.id)
                 .map(unit => ({
@@ -248,17 +252,17 @@ app.delete('/api/curriculums/:id', async (req, res) => {
 // Grade operations
 app.post('/api/grades', async (req, res) => {
   try {
-    const { curriculumId, name } = req.body;
+    const { curriculumId, name, learningObjectives, duration } = req.body;
     const id = generateUUID();
     
     const connection = await pool.getConnection();
     await connection.execute(
-      'INSERT INTO grades (id, curriculum_id, name) VALUES (?, ?, ?)',
-      [id, curriculumId, name]
+      'INSERT INTO grades (id, curriculum_id, name, learning_objectives, duration) VALUES (?, ?, ?, ?, ?)',
+      [id, curriculumId, name, stringifyArray(learningObjectives || []), duration || '']
     );
     connection.release();
     
-    res.status(201).json({ id, curriculumId, name });
+    res.status(201).json({ id, curriculumId, name, learningObjectives: learningObjectives || [], duration: duration || '' });
   } catch (error) {
     console.error('Error adding grade:', error);
     res.status(500).json({ error: 'Failed to add grade' });
@@ -268,16 +272,16 @@ app.post('/api/grades', async (req, res) => {
 app.put('/api/grades/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
     await connection.execute(
-      'UPDATE grades SET name = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, id]
+      'UPDATE grades SET name = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
+      [name || null, stringifyArray(learningObjectives || []), duration || null, id]
     );
     connection.release();
     
-    res.json({ id, name });
+    res.json({ id, name, learningObjectives: learningObjectives || [], duration: duration || '' });
   } catch (error) {
     console.error('Error updating grade:', error);
     res.status(500).json({ error: 'Failed to update grade' });
@@ -302,17 +306,17 @@ app.delete('/api/grades/:id', async (req, res) => {
 // Book operations
 app.post('/api/books', async (req, res) => {
   try {
-    const { gradeId, name } = req.body;
+    const { gradeId, name, learningObjectives, duration } = req.body;
     const id = generateUUID();
     
     const connection = await pool.getConnection();
     await connection.execute(
-      'INSERT INTO books (id, grade_id, name) VALUES (?, ?, ?)',
-      [id, gradeId, name]
+      'INSERT INTO books (id, grade_id, name, learning_objectives, duration) VALUES (?, ?, ?, ?, ?)',
+      [id, gradeId, name, stringifyArray(learningObjectives || []), duration || '']
     );
     connection.release();
     
-    res.status(201).json({ id, gradeId, name });
+    res.status(201).json({ id, gradeId, name, learningObjectives: learningObjectives || [], duration: duration || '' });
   } catch (error) {
     console.error('Error adding book:', error);
     res.status(500).json({ error: 'Failed to add book' });
@@ -322,16 +326,16 @@ app.post('/api/books', async (req, res) => {
 app.put('/api/books/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
     await connection.execute(
-      'UPDATE books SET name = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, id]
+      'UPDATE books SET name = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
+      [name || null, stringifyArray(learningObjectives || []), duration || null, id]
     );
     connection.release();
     
-    res.json({ id, name });
+    res.json({ id, name, learningObjectives: learningObjectives || [], duration: duration || '' });
   } catch (error) {
     console.error('Error updating book:', error);
     res.status(500).json({ error: 'Failed to update book' });
