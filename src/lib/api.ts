@@ -62,13 +62,13 @@ export const deleteCurriculum = (id: string) =>
   });
 
 // Grade operations
-export const createGrade = (data: { curriculumId: string; name: string }) =>
+export const createGrade = (data: { curriculumId: string; name: string; learningObjectives?: string[]; duration?: string }) =>
   apiRequest('/grades', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 
-export const updateGrade = (id: string, data: { name: string }) =>
+export const updateGrade = (id: string, data: { name?: string; learningObjectives?: string[]; duration?: string }) =>
   apiRequest(`/grades/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -80,13 +80,13 @@ export const deleteGrade = (id: string) =>
   });
 
 // Book operations
-export const createBook = (data: { gradeId: string; name: string }) =>
+export const createBook = (data: { gradeId: string; name: string; learningObjectives?: string[]; duration?: string }) =>
   apiRequest('/books', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 
-export const updateBook = (id: string, data: { name: string }) =>
+export const updateBook = (id: string, data: { name?: string; learningObjectives?: string[]; duration?: string }) =>
   apiRequest(`/books/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),

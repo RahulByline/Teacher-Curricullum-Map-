@@ -22,22 +22,22 @@ interface ContentEditorProps {
   onAddCurriculum: (name: string, description?: string) => Promise<string | undefined>;
   onUpdateCurriculum: (curriculumId: string, updates: Partial<Curriculum>) => void;
   onDeleteCurriculum: (curriculumId: string) => void;
-  onAddGrade: (curriculumId: string, name: string) => void;
+  onAddGrade: (curriculumId: string, name: string, learningObjectives?: string[], duration?: string) => void;
   onUpdateGrade: (curriculumId: string, gradeId: string, updates: Partial<Grade>) => void;
   onDeleteGrade: (curriculumId: string, gradeId: string) => void;
-  onAddBook: (curriculumId: string, gradeId: string, name: string) => void;
+  onAddBook: (curriculumId: string, gradeId: string, name: string, learningObjectives?: string[], duration?: string) => void;
   onUpdateBook: (curriculumId: string, gradeId: string, bookId: string, updates: Partial<Book>) => void;
   onDeleteBook: (curriculumId: string, gradeId: string, bookId: string) => void;
-  onAddUnit: (curriculumId: string, gradeId: string, bookId: string, name: string) => void;
+  onAddUnit: (curriculumId: string, gradeId: string, bookId: string, name: string, learningObjectives?: string[], duration?: string) => void;
   onUpdateUnit: (curriculumId: string, gradeId: string, bookId: string, unitId: string, updates: Partial<Unit>) => void;
   onDeleteUnit: (curriculumId: string, gradeId: string, bookId: string, unitId: string) => void;
-  onAddLesson: (curriculumId: string, gradeId: string, bookId: string, unitId: string, name: string) => void;
+  onAddLesson: (curriculumId: string, gradeId: string, bookId: string, unitId: string, name: string, learningObjectives?: string[], duration?: string) => void;
   onUpdateLesson: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, updates: Partial<Lesson>) => void;
   onDeleteLesson: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string) => void;
-  onAddStage: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageName: 'Play' | 'Lead' | 'Apply' | 'Yield') => void;
+  onAddStage: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, name: string, learningObjectives?: string[], duration?: string) => void;
   onUpdateStage: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, updates: Partial<Stage>) => void;
   onDeleteStage: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string) => void;
-  onAddActivity: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, name: string, type: string) => void;
+  onAddActivity: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, name: string, type: string, learningObjectives?: string[], duration?: string) => void;
   onUpdateActivity: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, activityId: string, updates: Partial<Activity>) => void;
   onDeleteActivity: (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, activityId: string) => void;
   onAddStandard: (curriculumId: string, name: string, description?: string) => void;
@@ -112,11 +112,16 @@ export function ContentEditor({
   const [showAddActivity, setShowAddActivity] = useState<string | null>(null);
   const [newActivity, setNewActivity] = useState({ name: '', type: '', duration: '', learningObjectives: [] as string[] });
   const [showActivityTypesManager, setShowActivityTypesManager] = useState(false);
+  const [newGradeLearningObjective, setNewGradeLearningObjective] = useState('');
+  const [newBookLearningObjective, setNewBookLearningObjective] = useState('');
   const { settings, updateSettings } = useSettings();
 
   const handleAddCurriculum = async () => {
     if (newCurriculumName.trim()) {
-      const newId = await onAddCurriculum(newCurriculumName.trim(), newCurriculumDescription.trim() || undefined);
+      const newId = await onAddCurriculum(
+        newCurriculumName.trim(), 
+        newCurriculumDescription.trim() || undefined
+      );
       if (newId) {
         onSelectPath(['curriculum', newId]);
       }
@@ -219,24 +224,34 @@ export function ContentEditor({
     const { type, parentId } = showAddModal;
     const [, curriculumId, , gradeId, , bookId, , unitId, , lessonId, , stageId] = selectedPath;
 
+    // Debug logging
+    console.log('Adding item:', type);
+    console.log('Selected path:', selectedPath);
+    console.log('Curriculum ID:', curriculumId);
+
     switch (type) {
       case 'grade':
-        onAddGrade(curriculumId, newItemName.trim());
+        // Make sure we have a valid curriculum ID
+        if (!curriculumId) {
+          console.error('No curriculum ID found in selectedPath');
+          return;
+        }
+        onAddGrade(curriculumId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
         break;
       case 'book':
-        onAddBook(curriculumId, gradeId, newItemName.trim());
+        onAddBook(curriculumId, gradeId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
         break;
       case 'unit':
-        onAddUnit(curriculumId, gradeId, bookId, newItemName.trim());
+        onAddUnit(curriculumId, gradeId, bookId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
         break;
       case 'lesson':
-        onAddLesson(curriculumId, gradeId, bookId, unitId, newItemName.trim());
+        onAddLesson(curriculumId, gradeId, bookId, unitId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
         break;
       case 'stage':
-        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newItemName.trim() as 'Play' | 'Lead' | 'Apply' | 'Yield');
+        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
         break;
       case 'activity':
-        onAddActivity(curriculumId, gradeId, bookId, unitId, lessonId, stageId, newItemName.trim(), newItemType.trim());
+        onAddActivity(curriculumId, gradeId, bookId, unitId, lessonId, stageId, newItemName.trim(), newItemType.trim(), newItemLearningObjectives, newItemDuration);
         // For activities, don't close the modal - allow adding multiple activities
         setActivityAddedMessage(`Activity "${newItemName.trim()}" added successfully!`);
         setNewItemName('');
@@ -267,6 +282,8 @@ export function ContentEditor({
   const handleRemoveLearningObjective = (index: number) => {
     setNewItemLearningObjectives(prev => prev.filter((_, i) => i !== index));
   };
+
+
 
   // Breadcrumb navigation helper
   const getBreadcrumbs = () => {
@@ -942,7 +959,14 @@ export function ContentEditor({
             
             <div className="flex space-x-3">
               <button
-                onClick={() => setShowAddModal({ type: 'grade' })}
+                onClick={() => {
+                  // Ensure we have a curriculum ID before opening the modal
+                  if (curriculum.id) {
+                    setShowAddModal({ type: 'grade' });
+                  } else {
+                    alert('Please select a curriculum first');
+                  }
+                }}
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
               >
                 <Plus size={18} />
@@ -1171,85 +1195,268 @@ export function ContentEditor({
             </div>
           </div>
 
-          {/* Standards Mapping */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Standards Mapping</h2>
-            {renderStandardsSelector(grade.standardCodes, (codes) => {
-              onUpdateGrade(curriculum.id, grade.id, { standardCodes: codes });
-            })}
-          </div>
-
-          {/* Books Grid */}
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Books</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {grade.books.map((book) => (
-                <div
-                  key={book.id}
-                  className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-105"
-                  onClick={() => onSelectPath(['curriculum', curriculum.id, 'grade', grade.id, 'book', book.id])}
+          {/* Content Layout - Full Width */}
+          <div className="space-y-8">
+            {/* Total Time Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <Clock size={14} className="mr-1" />
+                Total Time
+              </h4>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  step="0.1"
+                  value={grade.duration ? (grade.duration.match(/[\d.]+/)?.[0] || '') : ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (value && !isNaN(value)) {
+                      let timeValue = value;
+                      let timeUnit = 'Minutes';
+                      
+                      // Auto-convert to appropriate unit
+                      if (value >= 60 && value < 1440) {
+                        // Convert to hours if 60+ minutes but less than 24 hours
+                        timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                        timeUnit = 'Hours';
+                      } else if (value >= 1440 && value < 10080) {
+                        // Convert to days if 24+ hours but less than 7 days
+                        timeValue = Math.round((value / 1440) * 10) / 10;
+                        timeUnit = 'Days';
+                      } else if (value >= 10080) {
+                        // Convert to weeks if 7+ days
+                        timeValue = Math.round((value / 10080) * 10) / 10;
+                        timeUnit = 'Weeks';
+                      }
+                      
+                      onUpdateGrade(curriculum.id, grade.id, { duration: timeValue + ' ' + timeUnit });
+                    } else if (e.target.value === '') {
+                      onUpdateGrade(curriculum.id, grade.id, { duration: '' });
+                    }
+                  }}
+                  placeholder="0.0"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <select
+                  value={grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
+                  onChange={(e) => {
+                    const currentValue = grade.duration ? parseFloat(grade.duration.match(/[\d.]+/)?.[0] || '0') : 0;
+                    const currentUnit = grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                    const newUnit = e.target.value;
+                    
+                    // Convert between units
+                    let newValue = currentValue;
+                    if (currentUnit === 'Minutes' && newUnit === 'Hours') {
+                      newValue = Math.round((currentValue / 60) * 10) / 10;
+                    } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
+                      newValue = Math.round((currentValue / 1440) * 10) / 10;
+                    } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
+                      newValue = Math.round((currentValue / 10080) * 10) / 10;
+                    } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
+                      newValue = Math.round(currentValue * 60);
+                    } else if (currentUnit === 'Hours' && newUnit === 'Days') {
+                      newValue = Math.round((currentValue / 24) * 10) / 10;
+                    } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
+                      newValue = Math.round((currentValue / 168) * 10) / 10;
+                    } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
+                      newValue = Math.round(currentValue * 1440);
+                    } else if (currentUnit === 'Days' && newUnit === 'Hours') {
+                      newValue = Math.round(currentValue * 24);
+                    } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
+                      newValue = Math.round((currentValue / 7) * 10) / 10;
+                    } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
+                      newValue = Math.round(currentValue * 10080);
+                    } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
+                      newValue = Math.round(currentValue * 168);
+                    } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
+                      newValue = Math.round(currentValue * 7);
+                    }
+                    
+                    onUpdateGrade(curriculum.id, grade.id, { duration: newValue + ' ' + newUnit });
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg group-hover:from-green-600 group-hover:to-emerald-600 transition-all duration-200">
-                      <BookOpen size={24} className="text-white" />
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditing('book', book.id, 'name', book.name);
-                        }}
-                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirm({ type: 'book', id: book.id, name: book.name });
-                        }}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 group-hover:text-green-600 transition-colors">
-                    {renderEditableField('book', book.id, 'name', book.name)}
-                  </h3>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <FileText size={16} className="text-orange-500" />
-                      <span className="text-gray-600">{book.units.length} units</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Play size={16} className="text-purple-500" />
-                      <span className="text-gray-600">
-                        {book.units.reduce((sum, unit) => sum + unit.lessons.length, 0)} lessons
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  <option value="Minutes">Minutes</option>
+                  <option value="Hours">Hours</option>
+                  <option value="Days">Days</option>
+                  <option value="Weeks">Weeks</option>
+                </select>
+              </div>
             </div>
-
-            {grade.books.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                <BookOpen size={48} className="text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg mb-2">No books added yet</p>
-                <p className="text-gray-400 text-sm mb-6">Add your first book to get started</p>
+            
+            {/* Learning Objectives Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <Target size={14} className="mr-1" />
+                Learning Objectives
+              </h4>
+              
+              {/* Existing Learning Objectives */}
+              {grade.learningObjectives && grade.learningObjectives.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {grade.learningObjectives.map((objective, index) => (
+                    <div key={index} className="flex items-center justify-between bg-purple-100 px-3 py-2 rounded-lg">
+                      <span className="text-sm text-gray-700">{objective}</span>
+                      <button
+                        onClick={() => {
+                          const updatedObjectives = grade.learningObjectives?.filter((_, i) => i !== index) || [];
+                          onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                        }}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Add New Learning Objective */}
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={newGradeLearningObjective}
+                  onChange={(e) => setNewGradeLearningObjective(e.target.value)}
+                  placeholder="Add learning objective..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newGradeLearningObjective.trim()) {
+                      const updatedObjectives = [...(grade.learningObjectives || []), newGradeLearningObjective.trim()];
+                      onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                      setNewGradeLearningObjective('');
+                    }
+                  }}
+                />
                 <button
-                  onClick={() => setShowAddModal({ type: 'book' })}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+                  onClick={() => {
+                    if (newGradeLearningObjective.trim()) {
+                      const updatedObjectives = [...(grade.learningObjectives || []), newGradeLearningObjective.trim()];
+                      onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                      setNewGradeLearningObjective('');
+                    }
+                  }}
+                  disabled={!newGradeLearningObjective.trim()}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <Plus size={20} />
-                  <span>Add First Book</span>
+                  <Plus size={16} />
                 </button>
               </div>
-            )}
+            </div>
+
+            {/* Books Section */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 mb-6">Books</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {grade.books.map((book) => (
+                  <div
+                    key={book.id}
+                    className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-105"
+                    onClick={() => onSelectPath(['curriculum', curriculum.id, 'grade', grade.id, 'book', book.id])}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg group-hover:from-green-600 group-hover:to-emerald-600 transition-all duration-200">
+                        <BookOpen size={24} className="text-white" />
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing('book', book.id, 'name', book.name);
+                          }}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirm({ type: 'book', id: book.id, name: book.name });
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-gray-800 mb-4 group-hover:text-green-600 transition-colors">
+                      {renderEditableField('book', book.id, 'name', book.name)}
+                    </h3>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <FileText size={16} className="text-orange-500" />
+                        <span className="text-gray-600">{book.units.length} units</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Play size={16} className="text-purple-500" />
+                        <span className="text-gray-600">
+                          {book.units.reduce((sum, unit) => sum + unit.lessons.length, 0)} lessons
+                        </span>
+                      </div>
+                      
+                      {/* Duration */}
+                      {book.duration && (
+                        <div className="flex items-center space-x-2">
+                          <Clock size={16} className="text-blue-500" />
+                          <span className="text-gray-600">
+                            {(() => {
+                              const durationMatch = book.duration.match(/[\d.]+/);
+                              const unitMatch = book.duration.match(/\b(Minutes|Hours|Days|Weeks)\b/);
+                              if (durationMatch && unitMatch) {
+                                const value = parseFloat(durationMatch[0]);
+                                const unit = unitMatch[0];
+                                
+                                // Auto-convert for display
+                                if (unit === 'Minutes' && value >= 60) {
+                                  const hours = Math.round((value / 60) * 10) / 10;
+                                  return `${hours} Hours`;
+                                } else if (unit === 'Minutes' && value >= 1440) {
+                                  const days = Math.round((value / 1440) * 10) / 10;
+                                  return `${days} Days`;
+                                } else if (unit === 'Minutes' && value >= 10080) {
+                                  const weeks = Math.round((value / 10080) * 10) / 10;
+                                  return `${weeks} Weeks`;
+                                } else if (unit === 'Hours' && value >= 24) {
+                                  const days = Math.round((value / 24) * 10) / 10;
+                                  return `${days} Days`;
+                                } else if (unit === 'Hours' && value >= 168) {
+                                  const weeks = Math.round((value / 168) * 10) / 10;
+                                  return `${weeks} Weeks`;
+                                } else if (unit === 'Days' && value >= 7) {
+                                  const weeks = Math.round((value / 7) * 10) / 10;
+                                  return `${weeks} Weeks`;
+                                }
+                                
+                                return book.duration;
+                              }
+                              return book.duration;
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Learning Objectives */}
+                      {book.learningObjectives && book.learningObjectives.length > 0 && (
+                        <div className="flex items-center space-x-2">
+                          <Target size={16} className="text-green-500" />
+                          <span className="text-gray-600">{book.learningObjectives.length} objectives</span>
+                        </div>
+                      )}
+                      
+                      {book.units.length > 0 && (
+                        <div className="text-xs text-gray-500">
+                          {book.units[0].name}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+
+
         </div>
       </div>
     );
@@ -1294,90 +1501,263 @@ export function ContentEditor({
             </div>
           </div>
 
-          {/* Standards Mapping */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Standards Mapping</h2>
-            {renderStandardsSelector(book.standardCodes, (codes) => {
-              onUpdateBook(curriculum.id, grade!.id, book.id, { standardCodes: codes });
-            })}
-          </div>
-
-          {/* Units Grid */}
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-6">Units</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {book.units.map((unit) => (
-                <div
-                  key={unit.id}
-                  className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-105"
-                  onClick={() => onSelectPath(['curriculum', curriculum.id, 'grade', grade!.id, 'book', book.id, 'unit', unit.id])}
+          {/* Content Layout - Full Width */}
+          <div className="space-y-8">
+            {/* Total Time Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <Clock size={14} className="mr-1" />
+                Total Time
+              </h4>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  step="0.1"
+                  value={book.duration ? (book.duration.match(/[\d.]+/)?.[0] || '') : ''}
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value);
+                    if (value && !isNaN(value)) {
+                      let timeValue = value;
+                      let timeUnit = 'Minutes';
+                      
+                      // Auto-convert to appropriate unit
+                      if (value >= 60 && value < 1440) {
+                        // Convert to hours if 60+ minutes but less than 24 hours
+                        timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                        timeUnit = 'Hours';
+                      } else if (value >= 1440 && value < 10080) {
+                        // Convert to days if 24+ hours but less than 7 days
+                        timeValue = Math.round((value / 1440) * 10) / 10;
+                        timeUnit = 'Days';
+                      } else if (value >= 10080) {
+                        // Convert to weeks if 7+ days
+                        timeValue = Math.round((value / 10080) * 10) / 10;
+                        timeUnit = 'Weeks';
+                      }
+                      
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { duration: timeValue + ' ' + timeUnit });
+                    } else if (e.target.value === '') {
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { duration: '' });
+                    }
+                  }}
+                  placeholder="0.0"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <select
+                  value={book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
+                  onChange={(e) => {
+                    const currentValue = book.duration ? parseFloat(book.duration.match(/[\d.]+/)?.[0] || '0') : 0;
+                    const currentUnit = book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                    const newUnit = e.target.value;
+                    
+                    // Convert between units
+                    let newValue = currentValue;
+                    if (currentUnit === 'Minutes' && newUnit === 'Hours') {
+                      newValue = Math.round((currentValue / 60) * 10) / 10;
+                    } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
+                      newValue = Math.round((currentValue / 1440) * 10) / 10;
+                    } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
+                      newValue = Math.round((currentValue / 10080) * 10) / 10;
+                    } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
+                      newValue = Math.round(currentValue * 60);
+                    } else if (currentUnit === 'Hours' && newUnit === 'Days') {
+                      newValue = Math.round((currentValue / 24) * 10) / 10;
+                    } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
+                      newValue = Math.round((currentValue / 168) * 10) / 10;
+                    } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
+                      newValue = Math.round(currentValue * 1440);
+                    } else if (currentUnit === 'Days' && newUnit === 'Hours') {
+                      newValue = Math.round(currentValue * 24);
+                    } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
+                      newValue = Math.round((currentValue / 7) * 10) / 10;
+                    } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
+                      newValue = Math.round(currentValue * 10080);
+                    } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
+                      newValue = Math.round(currentValue * 168);
+                    } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
+                      newValue = Math.round(currentValue * 7);
+                    }
+                    
+                    onUpdateBook(curriculum.id, grade!.id, book.id, { duration: newValue + ' ' + newUnit });
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg group-hover:from-orange-600 group-hover:to-amber-600 transition-all duration-200">
-                      <FileText size={24} className="text-white" />
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditing('unit', unit.id, 'name', unit.name);
-                        }}
-                        className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirm({ type: 'unit', id: unit.id, name: unit.name });
-                        }}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors">
-                    {renderEditableField('unit', unit.id, 'name', unit.name)}
-                  </h3>
-                  
-                  {unit.totalTime && (
-                    <div className="flex items-center space-x-2 mb-4">
-                      <Clock size={16} className="text-gray-500" />
-                      <span className="text-gray-600 text-sm">{unit.totalTime}</span>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <Play size={16} className="text-purple-500" />
-                      <span className="text-gray-600">{unit.lessons.length} lessons</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Target size={16} className="text-indigo-500" />
-                      <span className="text-gray-600">{unit.learningObjectives.length} objectives</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  <option value="Minutes">Minutes</option>
+                  <option value="Hours">Hours</option>
+                  <option value="Days">Days</option>
+                  <option value="Weeks">Weeks</option>
+                </select>
+              </div>
             </div>
-
-            {book.units.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-                <FileText size={48} className="text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg mb-2">No units added yet</p>
-                <p className="text-gray-400 text-sm mb-6">Add your first unit to get started</p>
+            
+            {/* Learning Objectives Section */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <Target size={14} className="mr-1" />
+                Learning Objectives
+              </h4>
+              
+              {/* Existing Learning Objectives */}
+              {book.learningObjectives && book.learningObjectives.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {book.learningObjectives.map((objective, index) => (
+                    <div key={index} className="flex items-center justify-between bg-purple-100 px-3 py-2 rounded-lg">
+                      <span className="text-sm text-gray-700">{objective}</span>
+                      <button
+                        onClick={() => {
+                          const updatedObjectives = book.learningObjectives?.filter((_, i) => i !== index) || [];
+                          onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                        }}
+                        className="text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Add New Learning Objective */}
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={newBookLearningObjective}
+                  onChange={(e) => setNewBookLearningObjective(e.target.value)}
+                  placeholder="Add learning objective..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newBookLearningObjective.trim()) {
+                      const updatedObjectives = [...(book.learningObjectives || []), newBookLearningObjective.trim()];
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                      setNewBookLearningObjective('');
+                    }
+                  }}
+                />
                 <button
-                  onClick={() => setShowAddModal({ type: 'unit' })}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg hover:from-orange-700 hover:to-amber-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+                  onClick={() => {
+                    if (newBookLearningObjective.trim()) {
+                      const updatedObjectives = [...(book.learningObjectives || []), newBookLearningObjective.trim()];
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                      setNewBookLearningObjective('');
+                    }
+                  }}
+                  disabled={!newBookLearningObjective.trim()}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <Plus size={20} />
-                  <span>Add First Unit</span>
+                  <Plus size={16} />
                 </button>
               </div>
-            )}
+            </div>
+
+            {/* Units Section */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 mb-6">Units</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {book.units.map((unit) => (
+                  <div
+                    key={unit.id}
+                    className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-105"
+                    onClick={() => onSelectPath(['curriculum', curriculum.id, 'grade', grade!.id, 'book', book.id, 'unit', unit.id])}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg group-hover:from-orange-600 group-hover:to-amber-600 transition-all duration-200">
+                        <FileText size={24} className="text-white" />
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing('unit', unit.id, 'name', unit.name);
+                          }}
+                          className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirm({ type: 'unit', id: unit.id, name: unit.name });
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-gray-800 mb-4 group-hover:text-orange-600 transition-colors">
+                      {renderEditableField('unit', unit.id, 'name', unit.name)}
+                    </h3>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <Play size={16} className="text-purple-500" />
+                        <span className="text-gray-600">{unit.lessons.length} lessons</span>
+                      </div>
+                      
+                      {/* Duration */}
+                      {unit.totalTime && (
+                        <div className="flex items-center space-x-2">
+                          <Clock size={16} className="text-blue-500" />
+                          <span className="text-gray-600">
+                            {(() => {
+                              const totalTime = unit.totalTime as string;
+                              const durationMatch = totalTime.match(/[\d.]+/);
+                              const unitMatch = totalTime.match(/\b(Minutes|Hours|Days|Weeks)\b/);
+                              if (durationMatch && unitMatch) {
+                                const value = parseFloat(durationMatch[0]);
+                                const unit = unitMatch[0];
+                                
+                                // Auto-convert for display
+                                if (unit === 'Minutes' && value >= 60) {
+                                  const hours = Math.round((value / 60) * 10) / 10;
+                                  return `${hours} Hours`;
+                                } else if (unit === 'Minutes' && value >= 1440) {
+                                  const days = Math.round((value / 1440) * 10) / 10;
+                                  return `${days} Days`;
+                                } else if (unit === 'Minutes' && value >= 10080) {
+                                  const weeks = Math.round((value / 10080) * 10) / 10;
+                                  return `${weeks} Weeks`;
+                                } else if (unit === 'Hours' && value >= 24) {
+                                  const days = Math.round((value / 24) * 10) / 10;
+                                  return `${days} Days`;
+                                } else if (unit === 'Hours' && value >= 168) {
+                                  const weeks = Math.round((value / 168) * 10) / 10;
+                                  return `${weeks} Weeks`;
+                                } else if (unit === 'Days' && value >= 7) {
+                                  const weeks = Math.round((value / 7) * 10) / 10;
+                                  return `${weeks} Weeks`;
+                                }
+                                
+                                return totalTime;
+                              }
+                              return totalTime;
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Learning Objectives */}
+                      <div className="flex items-center space-x-2">
+                        <Target size={16} className="text-green-500" />
+                        <span className="text-gray-600">
+                          {unit.learningObjectives?.length || 0} objectives
+                        </span>
+                      </div>
+                      
+                      {unit.lessons.length > 0 && (
+                        <div className="text-xs text-gray-500">
+                          {unit.lessons[0].name}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+
+
         </div>
       </div>
     );
@@ -2058,6 +2438,8 @@ export function ContentEditor({
             </div>
           </div>
         )}
+
+
 
         {/* Upload Curriculum Modal */}
         {showUploadModal && (
