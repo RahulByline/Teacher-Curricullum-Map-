@@ -62,9 +62,9 @@ export function useCurriculumAPI() {
   };
 
   // Grade operations
-  const addGrade = async (curriculumId: string, name: string) => {
+  const addGrade = async (curriculumId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createGrade({ curriculumId, name });
+      await api.createGrade({ curriculumId, name, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding grade:', err);
@@ -93,9 +93,9 @@ export function useCurriculumAPI() {
   };
 
   // Book operations
-  const addBook = async (curriculumId: string, gradeId: string, name: string) => {
+  const addBook = async (curriculumId: string, gradeId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createBook({ gradeId, name });
+      await api.createBook({ gradeId, name, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding book:', err);
@@ -124,9 +124,9 @@ export function useCurriculumAPI() {
   };
 
   // Unit operations
-  const addUnit = async (curriculumId: string, gradeId: string, bookId: string, name: string) => {
+  const addUnit = async (curriculumId: string, gradeId: string, bookId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createUnit({ bookId, name });
+      await api.createUnit({ bookId, name, learningObjectives, totalTime: duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding unit:', err);
@@ -155,9 +155,9 @@ export function useCurriculumAPI() {
   };
 
   // Lesson operations
-  const addLesson = async (curriculumId: string, gradeId: string, bookId: string, unitId: string, name: string) => {
+  const addLesson = async (curriculumId: string, gradeId: string, bookId: string, unitId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createLesson({ unitId, name });
+      await api.createLesson({ unitId, name, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding lesson:', err);
@@ -186,9 +186,9 @@ export function useCurriculumAPI() {
   };
 
   // Stage operations
-  const addStage = async (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, name: string) => {
+  const addStage = async (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, name: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createStage({ lessonId, name });
+      await api.createStage({ lessonId, name, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding stage:', err);
@@ -217,9 +217,9 @@ export function useCurriculumAPI() {
   };
 
   // Activity operations
-  const addActivity = async (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, name: string, type: string) => {
+  const addActivity = async (curriculumId: string, gradeId: string, bookId: string, unitId: string, lessonId: string, stageId: string, name: string, type: string, learningObjectives?: string[], duration?: string) => {
     try {
-      await api.createActivity({ stageId, name, type });
+      await api.createActivity({ stageId, name, type, learningObjectives, duration });
       await loadCurriculums();
     } catch (err) {
       console.error('Error adding activity:', err);

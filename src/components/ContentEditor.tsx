@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, BookOpen, GraduationCap, FileText, Play, Target, Clock, Users, Zap, CheckCircle, Settings, BarChart3, Share2, Eye, Grid3X3, Map, X, Palette, ArrowLeft, Upload } from 'lucide-react';
 import { Curriculum, Grade, Book, Unit, Lesson, Stage, Activity, Standard, StandardCode, ActivityType } from '../types/curriculum';
 import { LearningObjectivesEditor } from './LearningObjectivesEditor';
@@ -97,6 +97,7 @@ export function ContentEditor({
   const [newItemName, setNewItemName] = useState('');
   const [newItemType, setNewItemType] = useState('');
   const [newItemDuration, setNewItemDuration] = useState('1');
+  const [newItemDurationUnit, setNewItemDurationUnit] = useState('hours');
   const [newItemLearningObjectives, setNewItemLearningObjectives] = useState<string[]>([]);
   const [newItemLearningObjective, setNewItemLearningObjective] = useState('');
   const [activityAddedMessage, setActivityAddedMessage] = useState('');
@@ -114,7 +115,74 @@ export function ContentEditor({
   const [showActivityTypesManager, setShowActivityTypesManager] = useState(false);
   const [newGradeLearningObjective, setNewGradeLearningObjective] = useState('');
   const [newBookLearningObjective, setNewBookLearningObjective] = useState('');
+  
+  // Debounced time input states
+  const [gradeTimeInput, setGradeTimeInput] = useState('');
+  const [bookTimeInput, setBookTimeInput] = useState('');
+  const [unitTimeInput, setUnitTimeInput] = useState('');
+  const [lessonTimeInput, setLessonTimeInput] = useState('');
+  const [stageTimeInput, setStageTimeInput] = useState('');
+  const [activityTimeInput, setActivityTimeInput] = useState('');
+  const gradeTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const bookTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const unitTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lessonTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const stageTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const activityTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const { settings, updateSettings } = useSettings();
+
+  // Cleanup timeouts on unmount or path change
+  useEffect(() => {
+    // Clear input states when path changes
+    setGradeTimeInput('');
+    setBookTimeInput('');
+    setUnitTimeInput('');
+    setLessonTimeInput('');
+    setStageTimeInput('');
+    setActivityTimeInput('');
+    
+    // Clear existing timeouts
+      if (gradeTimeTimeoutRef.current) {
+        clearTimeout(gradeTimeTimeoutRef.current);
+      }
+      if (bookTimeTimeoutRef.current) {
+        clearTimeout(bookTimeTimeoutRef.current);
+      }
+    if (unitTimeTimeoutRef.current) {
+      clearTimeout(unitTimeTimeoutRef.current);
+    }
+    if (lessonTimeTimeoutRef.current) {
+      clearTimeout(lessonTimeTimeoutRef.current);
+    }
+    if (stageTimeTimeoutRef.current) {
+      clearTimeout(stageTimeTimeoutRef.current);
+    }
+    if (activityTimeTimeoutRef.current) {
+      clearTimeout(activityTimeTimeoutRef.current);
+    }
+    
+    return () => {
+      if (gradeTimeTimeoutRef.current) {
+        clearTimeout(gradeTimeTimeoutRef.current);
+      }
+      if (bookTimeTimeoutRef.current) {
+        clearTimeout(bookTimeTimeoutRef.current);
+      }
+      if (unitTimeTimeoutRef.current) {
+        clearTimeout(unitTimeTimeoutRef.current);
+      }
+      if (lessonTimeTimeoutRef.current) {
+        clearTimeout(lessonTimeTimeoutRef.current);
+      }
+      if (stageTimeTimeoutRef.current) {
+        clearTimeout(stageTimeTimeoutRef.current);
+      }
+      if (activityTimeTimeoutRef.current) {
+        clearTimeout(activityTimeTimeoutRef.current);
+      }
+    };
+  }, [selectedPath]);
 
   const handleAddCurriculum = async () => {
     if (newCurriculumName.trim()) {
@@ -236,27 +304,29 @@ export function ContentEditor({
           console.error('No curriculum ID found in selectedPath');
           return;
         }
-        onAddGrade(curriculumId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddGrade(curriculumId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'book':
-        onAddBook(curriculumId, gradeId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddBook(curriculumId, gradeId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'unit':
-        onAddUnit(curriculumId, gradeId, bookId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddUnit(curriculumId, gradeId, bookId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'lesson':
-        onAddLesson(curriculumId, gradeId, bookId, unitId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddLesson(curriculumId, gradeId, bookId, unitId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'stage':
-        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'activity':
-        onAddActivity(curriculumId, gradeId, bookId, unitId, lessonId, stageId, newItemName.trim(), newItemType.trim(), newItemLearningObjectives, newItemDuration);
+        const targetStageId = showAddModal.parentId || stageId;
+        onAddActivity(curriculumId, gradeId, bookId, unitId, lessonId, targetStageId, newItemName.trim(), newItemType.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         // For activities, don't close the modal - allow adding multiple activities
         setActivityAddedMessage(`Activity "${newItemName.trim()}" added successfully!`);
         setNewItemName('');
         setNewItemType('');
-        setNewItemDuration('1');
+                setNewItemDuration('1');
+        setNewItemDurationUnit('hours');
         setNewItemLearningObjectives([]);
         setNewItemLearningObjective('');
         // Clear the success message after 3 seconds
@@ -373,7 +443,7 @@ export function ContentEditor({
   const handleAddStage = () => {
     if (newStage.name && selectedPath.length >= 10) {
       const [, curriculumId, , gradeId, , bookId, , unitId, , lessonId] = selectedPath;
-      onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newStage.name as 'Play' | 'Lead' | 'Apply' | 'Yield');
+        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newStage.name as 'Play' | 'Lead' | 'Apply' | 'Yield', newStage.learningObjectives, newStage.duration);
       setNewStage({ name: '', learningObjectives: [], duration: '' });
       setShowAddStage(false);
     }
@@ -1091,6 +1161,38 @@ export function ContentEditor({
                               sum + book.units.reduce((unitSum, unit) => unitSum + unit.lessons.length, 0), 0)} lessons
                           </span>
                         </div>
+                        
+                        {/* Duration */}
+                        {grade.duration && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center space-x-2">
+                              <Clock size={14} className="text-indigo-500" />
+                              <span className="text-xs font-medium text-gray-700">Duration:</span>
+                              <span className="text-xs text-gray-600">{grade.duration}</span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Learning Objectives */}
+                        {grade.learningObjectives && grade.learningObjectives.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Target size={14} className="text-blue-500" />
+                              <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
+                            </div>
+                            <ul className="text-xs text-gray-600 space-y-1">
+                              {grade.learningObjectives.slice(0, 2).map((objective, idx) => (
+                                <li key={idx} className="flex items-start space-x-1">
+                                  <span className="text-blue-400 mt-0.5">•</span>
+                                  <span className="leading-tight">{objective}</span>
+                                </li>
+                              ))}
+                              {grade.learningObjectives.length > 2 && (
+                                <li className="text-gray-400 text-xs">+{grade.learningObjectives.length - 2} more...</li>
+                              )}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -1207,9 +1309,19 @@ export function ContentEditor({
                 <input
                   type="number"
                   step="0.1"
-                  value={grade.duration ? (grade.duration.match(/[\d.]+/)?.[0] || '') : ''}
+                  value={gradeTimeInput !== '' ? gradeTimeInput : (grade.duration ? (grade.duration.match(/[\d.]+/)?.[0] || '') : '')}
                   onChange={(e) => {
-                    const value = parseFloat(e.target.value);
+                    const inputValue = e.target.value;
+                    setGradeTimeInput(inputValue);
+                    
+                    // Clear existing timeout
+                    if (gradeTimeTimeoutRef.current) {
+                      clearTimeout(gradeTimeTimeoutRef.current);
+                    }
+                    
+                    // Set new timeout for 2 seconds
+                    gradeTimeTimeoutRef.current = setTimeout(() => {
+                      const value = parseFloat(inputValue);
                     if (value && !isNaN(value)) {
                       let timeValue = value;
                       let timeUnit = 'Minutes';
@@ -1229,10 +1341,16 @@ export function ContentEditor({
                         timeUnit = 'Weeks';
                       }
                       
-                      onUpdateGrade(curriculum.id, grade.id, { duration: timeValue + ' ' + timeUnit });
-                    } else if (e.target.value === '') {
-                      onUpdateGrade(curriculum.id, grade.id, { duration: '' });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                          duration: timeValue + ' ' + timeUnit
+                      });
+                      } else if (inputValue === '') {
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                          duration: ''
+                      });
                     }
+                      setGradeTimeInput(''); // Clear the input state after update
+                    }, 2000);
                   }}
                   placeholder="0.0"
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1272,7 +1390,9 @@ export function ContentEditor({
                       newValue = Math.round(currentValue * 7);
                     }
                     
-                    onUpdateGrade(curriculum.id, grade.id, { duration: newValue + ' ' + newUnit });
+                    onUpdateGrade(curriculum.id, grade.id, { 
+                      duration: newValue + ' ' + newUnit
+                    });
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
@@ -1300,7 +1420,9 @@ export function ContentEditor({
                       <button
                         onClick={() => {
                           const updatedObjectives = grade.learningObjectives?.filter((_, i) => i !== index) || [];
-                          onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                          onUpdateGrade(curriculum.id, grade.id, { 
+                            learningObjectives: updatedObjectives
+                          });
                         }}
                         className="text-red-500 hover:text-red-700 transition-colors"
                       >
@@ -1322,7 +1444,9 @@ export function ContentEditor({
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && newGradeLearningObjective.trim()) {
                       const updatedObjectives = [...(grade.learningObjectives || []), newGradeLearningObjective.trim()];
-                      onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                        learningObjectives: updatedObjectives
+                      });
                       setNewGradeLearningObjective('');
                     }
                   }}
@@ -1331,7 +1455,9 @@ export function ContentEditor({
                   onClick={() => {
                     if (newGradeLearningObjective.trim()) {
                       const updatedObjectives = [...(grade.learningObjectives || []), newGradeLearningObjective.trim()];
-                      onUpdateGrade(curriculum.id, grade.id, { learningObjectives: updatedObjectives });
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                        learningObjectives: updatedObjectives
+                      });
                       setNewGradeLearningObjective('');
                     }
                   }}
@@ -1399,48 +1525,28 @@ export function ContentEditor({
                       {book.duration && (
                         <div className="flex items-center space-x-2">
                           <Clock size={16} className="text-blue-500" />
-                          <span className="text-gray-600">
-                            {(() => {
-                              const durationMatch = book.duration.match(/[\d.]+/);
-                              const unitMatch = book.duration.match(/\b(Minutes|Hours|Days|Weeks)\b/);
-                              if (durationMatch && unitMatch) {
-                                const value = parseFloat(durationMatch[0]);
-                                const unit = unitMatch[0];
-                                
-                                // Auto-convert for display
-                                if (unit === 'Minutes' && value >= 60) {
-                                  const hours = Math.round((value / 60) * 10) / 10;
-                                  return `${hours} Hours`;
-                                } else if (unit === 'Minutes' && value >= 1440) {
-                                  const days = Math.round((value / 1440) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Minutes' && value >= 10080) {
-                                  const weeks = Math.round((value / 10080) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Hours' && value >= 24) {
-                                  const days = Math.round((value / 24) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Hours' && value >= 168) {
-                                  const weeks = Math.round((value / 168) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Days' && value >= 7) {
-                                  const weeks = Math.round((value / 7) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                }
-                                
-                                return book.duration;
-                              }
-                              return book.duration;
-                            })()}
-                          </span>
+                          <span className="text-gray-600">{book.duration}</span>
                         </div>
                       )}
                       
                       {/* Learning Objectives */}
                       {book.learningObjectives && book.learningObjectives.length > 0 && (
-                        <div className="flex items-center space-x-2">
-                          <Target size={16} className="text-green-500" />
-                          <span className="text-gray-600">{book.learningObjectives.length} objectives</span>
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Target size={14} className="text-green-500" />
+                            <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
+                          </div>
+                          <ul className="text-xs text-gray-600 space-y-1">
+                            {book.learningObjectives.slice(0, 3).map((objective, idx) => (
+                              <li key={idx} className="flex items-start space-x-1">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span className="leading-tight">{objective}</span>
+                              </li>
+                            ))}
+                            {book.learningObjectives.length > 3 && (
+                              <li className="text-gray-400 text-xs">+{book.learningObjectives.length - 3} more...</li>
+                            )}
+                          </ul>
                         </div>
                       )}
                       
@@ -1453,6 +1559,21 @@ export function ContentEditor({
                   </div>
                 ))}
               </div>
+
+              {grade.books.length === 0 && (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                  <BookOpen size={48} className="text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg mb-2">No books added yet</p>
+                  <p className="text-gray-400 text-sm mb-6">Add your first book to get started</p>
+                  <button
+                    onClick={() => setShowAddModal({ type: 'book' })}
+                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+                  >
+                    <Plus size={20} />
+                    <span>Add First Book</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1513,32 +1634,48 @@ export function ContentEditor({
                 <input
                   type="number"
                   step="0.1"
-                  value={book.duration ? (book.duration.match(/[\d.]+/)?.[0] || '') : ''}
+                  value={bookTimeInput !== '' ? bookTimeInput : (book.duration ? (book.duration.match(/[\d.]+/)?.[0] || '') : '')}
                   onChange={(e) => {
-                    const value = parseFloat(e.target.value);
-                    if (value && !isNaN(value)) {
-                      let timeValue = value;
-                      let timeUnit = 'Minutes';
-                      
-                      // Auto-convert to appropriate unit
-                      if (value >= 60 && value < 1440) {
-                        // Convert to hours if 60+ minutes but less than 24 hours
-                        timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                        timeUnit = 'Hours';
-                      } else if (value >= 1440 && value < 10080) {
-                        // Convert to days if 24+ hours but less than 7 days
-                        timeValue = Math.round((value / 1440) * 10) / 10;
-                        timeUnit = 'Days';
-                      } else if (value >= 10080) {
-                        // Convert to weeks if 7+ days
-                        timeValue = Math.round((value / 10080) * 10) / 10;
-                        timeUnit = 'Weeks';
-                      }
-                      
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { duration: timeValue + ' ' + timeUnit });
-                    } else if (e.target.value === '') {
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { duration: '' });
+                    const inputValue = e.target.value;
+                    setBookTimeInput(inputValue);
+                    
+                    // Clear existing timeout
+                    if (bookTimeTimeoutRef.current) {
+                      clearTimeout(bookTimeTimeoutRef.current);
                     }
+                    
+                    // Set new timeout for 2 seconds
+                    bookTimeTimeoutRef.current = setTimeout(() => {
+                      const value = parseFloat(inputValue);
+                      if (value && !isNaN(value)) {
+                        let timeValue = value;
+                        let timeUnit = 'Minutes';
+                        
+                        // Auto-convert to appropriate unit
+                        if (value >= 60 && value < 1440) {
+                          // Convert to hours if 60+ minutes but less than 24 hours
+                          timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                          timeUnit = 'Hours';
+                        } else if (value >= 1440 && value < 10080) {
+                          // Convert to days if 24+ hours but less than 7 days
+                          timeValue = Math.round((value / 1440) * 10) / 10;
+                          timeUnit = 'Days';
+                        } else if (value >= 10080) {
+                          // Convert to weeks if 7+ days
+                          timeValue = Math.round((value / 10080) * 10) / 10;
+                          timeUnit = 'Weeks';
+                        }
+                        
+                        onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                          duration: timeValue + ' ' + timeUnit
+                        });
+                      } else if (inputValue === '') {
+                        onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                          duration: ''
+                        });
+                      }
+                      setBookTimeInput(''); // Clear the input state after update
+                    }, 2000);
                   }}
                   placeholder="0.0"
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1578,7 +1715,9 @@ export function ContentEditor({
                       newValue = Math.round(currentValue * 7);
                     }
                     
-                    onUpdateBook(curriculum.id, grade!.id, book.id, { duration: newValue + ' ' + newUnit });
+                    onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                      duration: newValue + ' ' + newUnit
+                    });
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                 >
@@ -1606,7 +1745,9 @@ export function ContentEditor({
                       <button
                         onClick={() => {
                           const updatedObjectives = book.learningObjectives?.filter((_, i) => i !== index) || [];
-                          onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                          onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                            learningObjectives: updatedObjectives
+                          });
                         }}
                         className="text-red-500 hover:text-red-700 transition-colors"
                       >
@@ -1628,7 +1769,9 @@ export function ContentEditor({
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && newBookLearningObjective.trim()) {
                       const updatedObjectives = [...(book.learningObjectives || []), newBookLearningObjective.trim()];
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                        learningObjectives: updatedObjectives
+                      });
                       setNewBookLearningObjective('');
                     }
                   }}
@@ -1637,7 +1780,9 @@ export function ContentEditor({
                   onClick={() => {
                     if (newBookLearningObjective.trim()) {
                       const updatedObjectives = [...(book.learningObjectives || []), newBookLearningObjective.trim()];
-                      onUpdateBook(curriculum.id, grade!.id, book.id, { learningObjectives: updatedObjectives });
+                      onUpdateBook(curriculum.id, grade!.id, book.id, { 
+                        learningObjectives: updatedObjectives
+                      });
                       setNewBookLearningObjective('');
                     }
                   }}
@@ -1699,51 +1844,30 @@ export function ContentEditor({
                       {unit.totalTime && (
                         <div className="flex items-center space-x-2">
                           <Clock size={16} className="text-blue-500" />
-                          <span className="text-gray-600">
-                            {(() => {
-                              const totalTime = unit.totalTime as string;
-                              const durationMatch = totalTime.match(/[\d.]+/);
-                              const unitMatch = totalTime.match(/\b(Minutes|Hours|Days|Weeks)\b/);
-                              if (durationMatch && unitMatch) {
-                                const value = parseFloat(durationMatch[0]);
-                                const unit = unitMatch[0];
-                                
-                                // Auto-convert for display
-                                if (unit === 'Minutes' && value >= 60) {
-                                  const hours = Math.round((value / 60) * 10) / 10;
-                                  return `${hours} Hours`;
-                                } else if (unit === 'Minutes' && value >= 1440) {
-                                  const days = Math.round((value / 1440) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Minutes' && value >= 10080) {
-                                  const weeks = Math.round((value / 10080) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Hours' && value >= 24) {
-                                  const days = Math.round((value / 24) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Hours' && value >= 168) {
-                                  const weeks = Math.round((value / 168) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Days' && value >= 7) {
-                                  const weeks = Math.round((value / 7) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                }
-                                
-                                return totalTime;
-                              }
-                              return totalTime;
-                            })()}
-                          </span>
+                          <span className="text-gray-600">{unit.totalTime}</span>
                         </div>
                       )}
                       
                       {/* Learning Objectives */}
-                      <div className="flex items-center space-x-2">
-                        <Target size={16} className="text-green-500" />
-                        <span className="text-gray-600">
-                          {unit.learningObjectives?.length || 0} objectives
-                        </span>
+                      {unit.learningObjectives && unit.learningObjectives.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Target size={14} className="text-green-500" />
+                            <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
                       </div>
+                          <ul className="text-xs text-gray-600 space-y-1">
+                            {unit.learningObjectives.slice(0, 3).map((objective, idx) => (
+                              <li key={idx} className="flex items-start space-x-1">
+                                <span className="text-green-400 mt-0.5">•</span>
+                                <span className="leading-tight">{objective}</span>
+                              </li>
+                            ))}
+                            {unit.learningObjectives.length > 3 && (
+                              <li className="text-gray-400 text-xs">+{unit.learningObjectives.length - 3} more...</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
                       
                       {unit.lessons.length > 0 && (
                         <div className="text-xs text-gray-500">
@@ -1754,6 +1878,21 @@ export function ContentEditor({
                   </div>
                 ))}
               </div>
+
+              {book.units.length === 0 && (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                  <FileText size={48} className="text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 text-lg mb-2">No units added yet</p>
+                  <p className="text-gray-400 text-sm mb-6">Add your first unit to get started</p>
+                  <button
+                    onClick={() => setShowAddModal({ type: 'unit' })}
+                    className="px-6 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg hover:from-orange-700 hover:to-amber-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+                  >
+                    <Plus size={20} />
+                    <span>Add First Unit</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1806,11 +1945,107 @@ export function ContentEditor({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="space-y-6">
               <div>
-                <TimeInput
-                  value={unit.totalTime}
-                  onChange={(value) => onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { totalTime: value })}
-                  label="Total Time"
-                />
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <Clock size={14} className="mr-1" />
+                  Total Time
+                </h4>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={unitTimeInput !== '' ? unitTimeInput : (unit.totalTime ? (unit.totalTime.match(/[\d.]+/)?.[0] || '') : '')}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      setUnitTimeInput(inputValue);
+                      
+                      // Clear existing timeout
+                      if (unitTimeTimeoutRef.current) {
+                        clearTimeout(unitTimeTimeoutRef.current);
+                      }
+                      
+                      // Set new timeout for 2 seconds
+                      unitTimeTimeoutRef.current = setTimeout(() => {
+                        const value = parseFloat(inputValue);
+                        if (value && !isNaN(value)) {
+                          let timeValue = value;
+                          let timeUnit = 'Minutes';
+                          
+                          // Auto-convert to appropriate unit
+                          if (value >= 60 && value < 1440) {
+                            // Convert to hours if 60+ minutes but less than 24 hours
+                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                            timeUnit = 'Hours';
+                          } else if (value >= 1440 && value < 10080) {
+                            // Convert to days if 24+ hours but less than 7 days
+                            timeValue = Math.round((value / 1440) * 10) / 10;
+                            timeUnit = 'Days';
+                          } else if (value >= 10080) {
+                            // Convert to weeks if 7+ days
+                            timeValue = Math.round((value / 10080) * 10) / 10;
+                            timeUnit = 'Weeks';
+                          }
+                          
+                          onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
+                            totalTime: timeValue + ' ' + timeUnit
+                          });
+                        } else if (inputValue === '') {
+                          onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
+                            totalTime: ''
+                          });
+                        }
+                        setUnitTimeInput(''); // Clear the input state after update
+                      }, 2000);
+                    }}
+                    placeholder="0.0"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <select
+                    value={unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
+                    onChange={(e) => {
+                      const currentValue = unit.totalTime ? parseFloat(unit.totalTime.match(/[\d.]+/)?.[0] || '0') : 0;
+                      const currentUnit = unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                      const newUnit = e.target.value;
+                      
+                      // Convert between units
+                      let newValue = currentValue;
+                      if (currentUnit === 'Minutes' && newUnit === 'Hours') {
+                        newValue = Math.round((currentValue / 60) * 10) / 10;
+                      } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
+                        newValue = Math.round((currentValue / 1440) * 10) / 10;
+                      } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 10080) * 10) / 10;
+                      } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 60);
+                      } else if (currentUnit === 'Hours' && newUnit === 'Days') {
+                        newValue = Math.round((currentValue / 24) * 10) / 10;
+                      } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 168) * 10) / 10;
+                      } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 1440);
+                      } else if (currentUnit === 'Days' && newUnit === 'Hours') {
+                        newValue = Math.round(currentValue * 24);
+                      } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 7) * 10) / 10;
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 10080);
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
+                        newValue = Math.round(currentValue * 168);
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
+                        newValue = Math.round(currentValue * 7);
+                      }
+                      
+                      onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
+                        totalTime: newValue + ' ' + newUnit
+                      });
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="Minutes">Minutes</option>
+                    <option value="Hours">Hours</option>
+                    <option value="Days">Days</option>
+                    <option value="Weeks">Weeks</option>
+                  </select>
+                </div>
               </div>
               
               <div>
@@ -1881,10 +2116,27 @@ export function ContentEditor({
                       <Target size={16} className="text-indigo-500" />
                       <span className="text-gray-600">{lesson.stages.length} stages</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Target size={16} className="text-green-500" />
-                      <span className="text-gray-600">{lesson.learningObjectives.length} objectives</span>
+                    
+                    {/* Learning Objectives */}
+                    {lesson.learningObjectives && lesson.learningObjectives.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Target size={14} className="text-green-500" />
+                          <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
                     </div>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          {lesson.learningObjectives.slice(0, 3).map((objective, idx) => (
+                            <li key={idx} className="flex items-start space-x-1">
+                              <span className="text-green-400 mt-0.5">•</span>
+                              <span className="leading-tight">{objective}</span>
+                            </li>
+                          ))}
+                          {lesson.learningObjectives.length > 3 && (
+                            <li className="text-gray-400 text-xs">+{lesson.learningObjectives.length - 3} more...</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Stage indicators */}
@@ -1965,11 +2217,107 @@ export function ContentEditor({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="space-y-6">
               <div>
-                <TimeInput
-                  value={lesson.duration}
-                  onChange={(value) => onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { duration: value })}
-                  label="Duration"
-                />
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <Clock size={14} className="mr-1" />
+                  Duration
+                </h4>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={lessonTimeInput !== '' ? lessonTimeInput : (lesson.duration ? (lesson.duration.match(/[\d.]+/)?.[0] || '') : '')}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      setLessonTimeInput(inputValue);
+                      
+                      // Clear existing timeout
+                      if (lessonTimeTimeoutRef.current) {
+                        clearTimeout(lessonTimeTimeoutRef.current);
+                      }
+                      
+                      // Set new timeout for 2 seconds
+                      lessonTimeTimeoutRef.current = setTimeout(() => {
+                        const value = parseFloat(inputValue);
+                        if (value && !isNaN(value)) {
+                          let timeValue = value;
+                          let timeUnit = 'Minutes';
+                          
+                          // Auto-convert to appropriate unit
+                          if (value >= 60 && value < 1440) {
+                            // Convert to hours if 60+ minutes but less than 24 hours
+                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                            timeUnit = 'Hours';
+                          } else if (value >= 1440 && value < 10080) {
+                            // Convert to days if 24+ hours but less than 7 days
+                            timeValue = Math.round((value / 1440) * 10) / 10;
+                            timeUnit = 'Days';
+                          } else if (value >= 10080) {
+                            // Convert to weeks if 7+ days
+                            timeValue = Math.round((value / 10080) * 10) / 10;
+                            timeUnit = 'Weeks';
+                          }
+                          
+                          onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { 
+                            duration: timeValue + ' ' + timeUnit
+                          });
+                        } else if (inputValue === '') {
+                          onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { 
+                            duration: ''
+                          });
+                        }
+                        setLessonTimeInput(''); // Clear the input state after update
+                      }, 2000);
+                    }}
+                    placeholder="0.0"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <select
+                    value={lesson.duration ? (lesson.duration.includes('Hours') ? 'Hours' : lesson.duration.includes('Days') ? 'Days' : lesson.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
+                    onChange={(e) => {
+                      const currentValue = lesson.duration ? parseFloat(lesson.duration.match(/[\d.]+/)?.[0] || '0') : 0;
+                      const currentUnit = lesson.duration ? (lesson.duration.includes('Hours') ? 'Hours' : lesson.duration.includes('Days') ? 'Days' : lesson.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                      const newUnit = e.target.value;
+                      
+                      // Convert between units
+                      let newValue = currentValue;
+                      if (currentUnit === 'Minutes' && newUnit === 'Hours') {
+                        newValue = Math.round((currentValue / 60) * 10) / 10;
+                      } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
+                        newValue = Math.round((currentValue / 1440) * 10) / 10;
+                      } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 10080) * 10) / 10;
+                      } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 60);
+                      } else if (currentUnit === 'Hours' && newUnit === 'Days') {
+                        newValue = Math.round((currentValue / 24) * 10) / 10;
+                      } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 168) * 10) / 10;
+                      } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 1440);
+                      } else if (currentUnit === 'Days' && newUnit === 'Hours') {
+                        newValue = Math.round(currentValue * 24);
+                      } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 7) * 10) / 10;
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 10080);
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
+                        newValue = Math.round(currentValue * 168);
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
+                        newValue = Math.round(currentValue * 7);
+                      }
+                      
+                      onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { 
+                        duration: newValue + ' ' + newUnit
+                      });
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="Minutes">Minutes</option>
+                    <option value="Hours">Hours</option>
+                    <option value="Days">Days</option>
+                    <option value="Weeks">Weeks</option>
+                  </select>
+                </div>
               </div>
               
               <div>
@@ -2043,6 +2391,7 @@ export function ContentEditor({
                 <div
                   key={stage.id}
                   className={`border-2 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-105 ${getStageColor(stage.name)} border-opacity-50`}
+                  onClick={() => onSelectPath(['curriculum', curriculum.id, 'grade', grade!.id, 'book', book!.id, 'unit', unit!.id, 'lesson', lesson.id, 'stage', stage.id])}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
@@ -2085,12 +2434,15 @@ export function ContentEditor({
                       <h4 className="font-semibold mb-2">Learning Objectives:</h4>
                       {stage.learningObjectives.length > 0 ? (
                         <ul className="text-sm space-y-1">
-                          {stage.learningObjectives.map((objective, index) => (
+                          {stage.learningObjectives.slice(0, 3).map((objective, index) => (
                             <li key={index} className="flex items-start space-x-2">
                               <span className="opacity-75 mt-1">•</span>
                               <span className="opacity-90">{objective}</span>
                             </li>
                           ))}
+                          {stage.learningObjectives.length > 3 && (
+                            <li className="text-sm opacity-75">+{stage.learningObjectives.length - 3} more...</li>
+                          )}
                         </ul>
                       ) : (
                         <p className="text-sm opacity-75">No objectives defined</p>
@@ -2167,7 +2519,7 @@ export function ContentEditor({
                         {stage.activities.map((activity) => (
                           <div key={activity.id} className="bg-white bg-opacity-50 rounded-lg p-3">
                             <div className="flex items-center justify-between">
-                              <div>
+                              <div className="flex-1">
                                 <h5 className="font-medium">
                                   {renderEditableField('activity', activity.id, 'name', activity.name)}
                                 </h5>
@@ -2176,6 +2528,27 @@ export function ContentEditor({
                                   <div className="flex items-center space-x-1 mt-1">
                                     <Clock size={12} className="opacity-75" />
                                     <span className="text-xs opacity-75">{activity.duration}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Learning Objectives */}
+                                {activity.learningObjectives && activity.learningObjectives.length > 0 && (
+                                  <div className="mt-2 pt-2 border-t border-white border-opacity-30">
+                                    <div className="flex items-center space-x-1 mb-1">
+                                      <Target size={10} className="opacity-75" />
+                                      <span className="text-xs font-medium opacity-90">Objectives:</span>
+                                    </div>
+                                    <ul className="text-xs opacity-75 space-y-0.5">
+                                      {activity.learningObjectives.slice(0, 2).map((objective, idx) => (
+                                        <li key={idx} className="flex items-start space-x-1">
+                                          <span className="mt-0.5">•</span>
+                                          <span className="leading-tight">{objective}</span>
+                                        </li>
+                                      ))}
+                                      {activity.learningObjectives.length > 2 && (
+                                        <li className="text-xs opacity-60">+{activity.learningObjectives.length - 2} more...</li>
+                                      )}
+                                    </ul>
                                   </div>
                                 )}
                               </div>
@@ -2234,6 +2607,353 @@ export function ContentEditor({
       </div>
     );
     }
+
+    // Stage detail view
+    if (selectedPath.length === 12 && stage) {
+      return (
+      <div className="flex-1 bg-white overflow-y-auto">
+        <div className="p-8">
+          {/* Breadcrumbs */}
+          {renderBreadcrumbs()}
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleBackNavigation}
+                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Go back"
+              >
+                <ArrowLeft size={20} />
+              </button>
+              <div className={`p-3 rounded-xl ${getStageColor(stage.name).includes('pink') ? 'bg-gradient-to-r from-pink-500 to-rose-500' : 
+                getStageColor(stage.name).includes('blue') ? 'bg-gradient-to-r from-blue-500 to-indigo-500' :
+                getStageColor(stage.name).includes('green') ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                'bg-gradient-to-r from-yellow-500 to-amber-500'}`}>
+                {getStageIcon(stage.name)}
+                <div className="ml-2 text-white">
+                  <h1 className="text-2xl font-bold">{stage.name}</h1>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-800">
+                  {renderEditableField('stage', stage.id, 'name', stage.name)}
+                </h1>
+                <p className="text-gray-600 mt-1">Stage in {lesson?.name} - {unit?.name} - {book?.name} - {grade?.name} - {curriculum.name}</p>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowAddModal({ type: 'activity', parentId: stage.id })}
+                className="px-4 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg hover:from-pink-700 hover:to-rose-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+              >
+                <Plus size={18} />
+                <span>Add Activity</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Stage Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                  <Clock size={14} className="mr-1" />
+                  Duration
+                </h4>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={stageTimeInput !== '' ? stageTimeInput : (stage.duration ? (stage.duration.match(/[\d.]+/)?.[0] || '') : '')}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      setStageTimeInput(inputValue);
+                      
+                      // Clear existing timeout
+                      if (stageTimeTimeoutRef.current) {
+                        clearTimeout(stageTimeTimeoutRef.current);
+                      }
+                      
+                      // Set new timeout for 2 seconds
+                      stageTimeTimeoutRef.current = setTimeout(() => {
+                        const value = parseFloat(inputValue);
+                        if (value && !isNaN(value)) {
+                          let timeValue = value;
+                          let timeUnit = 'Minutes';
+                          
+                          // Auto-convert to appropriate unit
+                          if (value >= 60 && value < 1440) {
+                            // Convert to hours if 60+ minutes but less than 24 hours
+                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                            timeUnit = 'Hours';
+                          } else if (value >= 1440 && value < 10080) {
+                            // Convert to days if 24+ hours but less than 7 days
+                            timeValue = Math.round((value / 1440) * 10) / 10;
+                            timeUnit = 'Days';
+                          } else if (value >= 10080) {
+                            // Convert to weeks if 7+ days
+                            timeValue = Math.round((value / 10080) * 10) / 10;
+                            timeUnit = 'Weeks';
+                          }
+                          
+                          onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { 
+                            duration: timeValue + ' ' + timeUnit
+                          });
+                        } else if (inputValue === '') {
+                          onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { 
+                            duration: ''
+                          });
+                        }
+                        setStageTimeInput(''); // Clear the input state after update
+                      }, 2000);
+                    }}
+                    placeholder="0.0"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <select
+                    value={stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
+                    onChange={(e) => {
+                      const currentValue = stage.duration ? parseFloat(stage.duration.match(/[\d.]+/)?.[0] || '0') : 0;
+                      const currentUnit = stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                      const newUnit = e.target.value;
+                      
+                      // Convert between units
+                      let newValue = currentValue;
+                      if (currentUnit === 'Minutes' && newUnit === 'Hours') {
+                        newValue = Math.round((currentValue / 60) * 10) / 10;
+                      } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
+                        newValue = Math.round((currentValue / 1440) * 10) / 10;
+                      } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 10080) * 10) / 10;
+                      } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 60);
+                      } else if (currentUnit === 'Hours' && newUnit === 'Days') {
+                        newValue = Math.round((currentValue / 24) * 10) / 10;
+                      } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 168) * 10) / 10;
+                      } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 1440);
+                      } else if (currentUnit === 'Days' && newUnit === 'Hours') {
+                        newValue = Math.round(currentValue * 24);
+                      } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
+                        newValue = Math.round((currentValue / 7) * 10) / 10;
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
+                        newValue = Math.round(currentValue * 10080);
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
+                        newValue = Math.round(currentValue * 168);
+                      } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
+                        newValue = Math.round(currentValue * 7);
+                      }
+                      
+                      onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { 
+                        duration: newValue + ' ' + newUnit
+                      });
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  >
+                    <option value="Minutes">Minutes</option>
+                    <option value="Hours">Hours</option>
+                    <option value="Days">Days</option>
+                    <option value="Weeks">Weeks</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <LearningObjectivesEditor
+                  objectives={stage.learningObjectives}
+                  onUpdate={(objectives) => onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { learningObjectives: objectives })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Standards Mapping</h3>
+              {renderStandardsSelector(stage.standardCodes, (codes) => {
+                onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { standardCodes: codes });
+              })}
+            </div>
+          </div>
+
+          {/* Activities Grid */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-800 mb-6">Activities</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {stage.activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group hover:scale-105"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg group-hover:from-pink-600 group-hover:to-rose-600 transition-all duration-200">
+                      <Zap size={24} className="text-white" />
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startEditing('activity', activity.id, 'name', activity.name);
+                        }}
+                        className="p-2 text-gray-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirm({ type: 'activity', id: activity.id, name: activity.name });
+                        }}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-pink-600 transition-colors">
+                    {renderEditableField('activity', activity.id, 'name', activity.name)}
+                  </h3>
+                  
+                  <p className="text-gray-600 text-sm mb-4">{activity.type}</p>
+                  
+                  <div className="mb-4">
+                    <h5 className="text-xs font-semibold text-gray-700 mb-1 flex items-center">
+                      <Clock size={12} className="mr-1" />
+                      Duration
+                    </h5>
+                    <div className="flex space-x-1">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={activityTimeInput !== '' ? activityTimeInput : (activity.duration ? (activity.duration.match(/[\d.]+/)?.[0] || '') : '')}
+                        onChange={(e) => {
+                          const inputValue = e.target.value;
+                          setActivityTimeInput(inputValue);
+                          
+                          // Clear existing timeout
+                          if (activityTimeTimeoutRef.current) {
+                            clearTimeout(activityTimeTimeoutRef.current);
+                          }
+                          
+                          // Set new timeout for 2 seconds
+                          activityTimeTimeoutRef.current = setTimeout(() => {
+                            const value = parseFloat(inputValue);
+                            if (value && !isNaN(value)) {
+                              let timeValue = value;
+                              let timeUnit = 'Minutes';
+                              
+                              // Auto-convert to appropriate unit
+                              if (value >= 60 && value < 1440) {
+                                timeValue = Math.round((value / 60) * 10) / 10;
+                                timeUnit = 'Hours';
+                              } else if (value >= 1440 && value < 10080) {
+                                timeValue = Math.round((value / 1440) * 10) / 10;
+                                timeUnit = 'Days';
+                              } else if (value >= 10080) {
+                                timeValue = Math.round((value / 10080) * 10) / 10;
+                                timeUnit = 'Weeks';
+                              }
+                              
+                              onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { 
+                                duration: timeValue + ' ' + timeUnit
+                              });
+                            } else if (inputValue === '') {
+                              onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { 
+                                duration: ''
+                              });
+                            }
+                            setActivityTimeInput('');
+                          }, 2000);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="0.0"
+                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-pink-500 focus:border-transparent"
+                      />
+                      <select
+                        value={activity.duration ? (activity.duration.includes('Hours') ? 'Hours' : activity.duration.includes('Days') ? 'Days' : activity.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
+                        onChange={(e) => {
+                          const currentValue = activity.duration ? parseFloat(activity.duration.match(/[\d.]+/)?.[0] || '0') : 0;
+                          const currentUnit = activity.duration ? (activity.duration.includes('Hours') ? 'Hours' : activity.duration.includes('Days') ? 'Days' : activity.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                          const newUnit = e.target.value;
+                          
+                          // Convert between units
+                          let newValue = currentValue;
+                          if (currentUnit === 'Minutes' && newUnit === 'Hours') {
+                            newValue = Math.round((currentValue / 60) * 10) / 10;
+                          } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
+                            newValue = Math.round((currentValue / 1440) * 10) / 10;
+                          } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
+                            newValue = Math.round((currentValue / 10080) * 10) / 10;
+                          } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
+                            newValue = Math.round(currentValue * 60);
+                          } else if (currentUnit === 'Hours' && newUnit === 'Days') {
+                            newValue = Math.round((currentValue / 24) * 10) / 10;
+                          } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
+                            newValue = Math.round((currentValue / 168) * 10) / 10;
+                          } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
+                            newValue = Math.round(currentValue * 1440);
+                          } else if (currentUnit === 'Days' && newUnit === 'Hours') {
+                            newValue = Math.round(currentValue * 24);
+                          } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
+                            newValue = Math.round((currentValue / 7) * 10) / 10;
+                          } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
+                            newValue = Math.round(currentValue * 10080);
+                          } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
+                            newValue = Math.round(currentValue * 168);
+                          } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
+                            newValue = Math.round(currentValue * 7);
+                          }
+                          
+                          onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { 
+                            duration: newValue + ' ' + newUnit
+                          });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-pink-500 focus:border-transparent bg-white"
+                      >
+                        <option value="Minutes">Min</option>
+                        <option value="Hours">Hr</option>
+                        <option value="Days">Day</option>
+                        <option value="Weeks">Wk</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Learning Objectives Editor */}
+                  <div className="mb-4">
+                    <LearningObjectivesEditor
+                      objectives={activity.learningObjectives}
+                      onUpdate={(objectives) => onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { learningObjectives: objectives })}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {stage.activities.length === 0 && (
+              <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <Zap size={48} className="text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg mb-2">No activities added yet</p>
+                <p className="text-gray-400 text-sm mb-6">Add your first activity to get started</p>
+                <button
+                  onClick={() => setShowAddModal({ type: 'activity', parentId: stage.id })}
+                  className="px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg hover:from-pink-700 hover:to-rose-700 font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center space-x-2 mx-auto"
+                >
+                  <Plus size={20} />
+                  <span>Add First Activity</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+    }
+
+    // Activity detail view (if needed for individual activity editing)
+    // For now, activities are managed within the stage detail view
+    // which provides a better UX for this curriculum structure
     
     return null;
   };
@@ -2318,7 +3038,11 @@ export function ContentEditor({
                       onChange={(e) => setNewItemDuration(e.target.value)}
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     />
-                    <select className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                    <select 
+                      value={newItemDurationUnit}
+                      onChange={(e) => setNewItemDurationUnit(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    >
                       <option value="minutes">Minutes</option>
                       <option value="hours">Hours</option>
                       <option value="days">Days</option>

@@ -276,10 +276,26 @@ export function CurriculumGridView({
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm text-gray-500">-</span>
+                        <div className="text-xs text-gray-600 max-w-xs">
+                          {grade.learningObjectives && grade.learningObjectives.length > 0 ? (
+                            <ul className="list-disc list-inside space-y-1">
+                              {grade.learningObjectives.slice(0, 2).map((obj, idx) => (
+                                <li key={idx}>{obj}</li>
+                              ))}
+                              {grade.learningObjectives.length > 2 && (
+                                <li className="text-gray-400">+{grade.learningObjectives.length - 2} more...</li>
+                              )}
+                            </ul>
+                          ) : (
+                            <span className="text-gray-400">No objectives</span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm text-gray-500">-</span>
+                        <div className="flex items-center space-x-1 text-sm text-gray-600">
+                          <Clock size={12} />
+                          <span>{grade.duration || 'Not set'}</span>
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <div className="text-sm text-gray-600">
@@ -324,10 +340,26 @@ export function CurriculumGridView({
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm text-gray-500">-</span>
+                            <div className="text-xs text-gray-600 max-w-xs">
+                              {book.learningObjectives && book.learningObjectives.length > 0 ? (
+                                <ul className="list-disc list-inside space-y-1">
+                                  {book.learningObjectives.slice(0, 2).map((obj, idx) => (
+                                    <li key={idx}>{obj}</li>
+                                  ))}
+                                  {book.learningObjectives.length > 2 && (
+                                    <li className="text-gray-400">+{book.learningObjectives.length - 2} more...</li>
+                                  )}
+                                </ul>
+                              ) : (
+                                <span className="text-gray-400">No objectives</span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 px-4">
-                            <span className="text-sm text-gray-500">-</span>
+                            <div className="flex items-center space-x-1 text-sm text-gray-600">
+                              <Clock size={12} />
+                              <span>{book.duration || 'Not set'}</span>
+                            </div>
                           </td>
                           <td className="py-3 px-4">
                             <div className="text-sm text-gray-600">

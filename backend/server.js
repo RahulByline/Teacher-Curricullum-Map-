@@ -275,13 +275,46 @@ app.put('/api/grades/:id', async (req, res) => {
     const { name, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
-    await connection.execute(
-      'UPDATE grades SET name = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, stringifyArray(learningObjectives || []), duration || null, id]
-    );
+    
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (learningObjectives !== undefined) {
+      updateFields.push('learning_objectives = ?');
+      updateValues.push(stringifyArray(learningObjectives));
+    }
+    
+    if (duration !== undefined) {
+      updateFields.push('duration = ?');
+      updateValues.push(duration);
+    }
+    
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = NOW()');
+    
+    // Add the id for the WHERE clause
+    updateValues.push(id);
+    
+    if (updateFields.length > 1) { // More than just updated_at
+      const query = `UPDATE grades SET ${updateFields.join(', ')} WHERE id = ?`;
+      await connection.execute(query, updateValues);
+    }
+    
     connection.release();
     
-    res.json({ id, name, learningObjectives: learningObjectives || [], duration: duration || '' });
+    // Return the updated grade data
+    res.json({ 
+      id, 
+      name: name !== undefined ? name : null, 
+      learningObjectives: learningObjectives !== undefined ? learningObjectives : [], 
+      duration: duration !== undefined ? duration : '' 
+    });
   } catch (error) {
     console.error('Error updating grade:', error);
     res.status(500).json({ error: 'Failed to update grade' });
@@ -329,13 +362,46 @@ app.put('/api/books/:id', async (req, res) => {
     const { name, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
-    await connection.execute(
-      'UPDATE books SET name = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, stringifyArray(learningObjectives || []), duration || null, id]
-    );
+    
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (learningObjectives !== undefined) {
+      updateFields.push('learning_objectives = ?');
+      updateValues.push(stringifyArray(learningObjectives));
+    }
+    
+    if (duration !== undefined) {
+      updateFields.push('duration = ?');
+      updateValues.push(duration);
+    }
+    
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = NOW()');
+    
+    // Add the id for the WHERE clause
+    updateValues.push(id);
+    
+    if (updateFields.length > 1) { // More than just updated_at
+      const query = `UPDATE books SET ${updateFields.join(', ')} WHERE id = ?`;
+      await connection.execute(query, updateValues);
+    }
+    
     connection.release();
     
-    res.json({ id, name, learningObjectives: learningObjectives || [], duration: duration || '' });
+    // Return the updated book data
+    res.json({ 
+      id, 
+      name: name !== undefined ? name : null, 
+      learningObjectives: learningObjectives !== undefined ? learningObjectives : [], 
+      duration: duration !== undefined ? duration : '' 
+    });
   } catch (error) {
     console.error('Error updating book:', error);
     res.status(500).json({ error: 'Failed to update book' });
@@ -383,13 +449,46 @@ app.put('/api/units/:id', async (req, res) => {
     const { name, learningObjectives, totalTime } = req.body;
     
     const connection = await pool.getConnection();
-    await connection.execute(
-      'UPDATE units SET name = ?, learning_objectives = ?, total_time = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, stringifyArray(learningObjectives || []), totalTime || null, id]
-    );
+    
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (learningObjectives !== undefined) {
+      updateFields.push('learning_objectives = ?');
+      updateValues.push(stringifyArray(learningObjectives));
+    }
+    
+    if (totalTime !== undefined) {
+      updateFields.push('total_time = ?');
+      updateValues.push(totalTime);
+    }
+    
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = NOW()');
+    
+    // Add the id for the WHERE clause
+    updateValues.push(id);
+    
+    if (updateFields.length > 1) { // More than just updated_at
+      const query = `UPDATE units SET ${updateFields.join(', ')} WHERE id = ?`;
+      await connection.execute(query, updateValues);
+    }
+    
     connection.release();
     
-    res.json({ id, name, learningObjectives: learningObjectives || [], totalTime: totalTime || '' });
+    // Return the updated unit data
+    res.json({ 
+      id, 
+      name: name !== undefined ? name : null, 
+      learningObjectives: learningObjectives !== undefined ? learningObjectives : [], 
+      totalTime: totalTime !== undefined ? totalTime : '' 
+    });
   } catch (error) {
     console.error('Error updating unit:', error);
     res.status(500).json({ error: 'Failed to update unit' });
@@ -437,13 +536,46 @@ app.put('/api/lessons/:id', async (req, res) => {
     const { name, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
-    await connection.execute(
-      'UPDATE lessons SET name = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, stringifyArray(learningObjectives || []), duration || null, id]
-    );
+    
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (learningObjectives !== undefined) {
+      updateFields.push('learning_objectives = ?');
+      updateValues.push(stringifyArray(learningObjectives));
+    }
+    
+    if (duration !== undefined) {
+      updateFields.push('duration = ?');
+      updateValues.push(duration);
+    }
+    
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = NOW()');
+    
+    // Add the id for the WHERE clause
+    updateValues.push(id);
+    
+    if (updateFields.length > 1) { // More than just updated_at
+      const query = `UPDATE lessons SET ${updateFields.join(', ')} WHERE id = ?`;
+      await connection.execute(query, updateValues);
+    }
+    
     connection.release();
     
-    res.json({ id, name, learningObjectives: learningObjectives || [], duration: duration || '' });
+    // Return the updated lesson data
+    res.json({ 
+      id, 
+      name: name !== undefined ? name : null, 
+      learningObjectives: learningObjectives !== undefined ? learningObjectives : [], 
+      duration: duration !== undefined ? duration : '' 
+    });
   } catch (error) {
     console.error('Error updating lesson:', error);
     res.status(500).json({ error: 'Failed to update lesson' });
@@ -491,13 +623,46 @@ app.put('/api/stages/:id', async (req, res) => {
     const { name, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
-    await connection.execute(
-      'UPDATE stages SET name = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, stringifyArray(learningObjectives || []), duration || null, id]
-    );
+    
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (learningObjectives !== undefined) {
+      updateFields.push('learning_objectives = ?');
+      updateValues.push(stringifyArray(learningObjectives));
+    }
+    
+    if (duration !== undefined) {
+      updateFields.push('duration = ?');
+      updateValues.push(duration);
+    }
+    
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = NOW()');
+    
+    // Add the id for the WHERE clause
+    updateValues.push(id);
+    
+    if (updateFields.length > 1) { // More than just updated_at
+      const query = `UPDATE stages SET ${updateFields.join(', ')} WHERE id = ?`;
+      await connection.execute(query, updateValues);
+    }
+    
     connection.release();
     
-    res.json({ id, name, learningObjectives: learningObjectives || [], duration: duration || '' });
+    // Return the updated stage data
+    res.json({ 
+      id, 
+      name: name !== undefined ? name : null, 
+      learningObjectives: learningObjectives !== undefined ? learningObjectives : [], 
+      duration: duration !== undefined ? duration : '' 
+    });
   } catch (error) {
     console.error('Error updating stage:', error);
     res.status(500).json({ error: 'Failed to update stage' });
@@ -545,13 +710,52 @@ app.put('/api/activities/:id', async (req, res) => {
     const { name, type, learningObjectives, duration } = req.body;
     
     const connection = await pool.getConnection();
-    await connection.execute(
-      'UPDATE activities SET name = ?, type = ?, learning_objectives = ?, duration = ?, updated_at = NOW() WHERE id = ?',
-      [name || null, type || null, stringifyArray(learningObjectives || []), duration || null, id]
-    );
+    
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (type !== undefined) {
+      updateFields.push('type = ?');
+      updateValues.push(type);
+    }
+    
+    if (learningObjectives !== undefined) {
+      updateFields.push('learning_objectives = ?');
+      updateValues.push(stringifyArray(learningObjectives));
+    }
+    
+    if (duration !== undefined) {
+      updateFields.push('duration = ?');
+      updateValues.push(duration);
+    }
+    
+    // Always update the updated_at timestamp
+    updateFields.push('updated_at = NOW()');
+    
+    // Add the id for the WHERE clause
+    updateValues.push(id);
+    
+    if (updateFields.length > 1) { // More than just updated_at
+      const query = `UPDATE activities SET ${updateFields.join(', ')} WHERE id = ?`;
+      await connection.execute(query, updateValues);
+    }
+    
     connection.release();
     
-    res.json({ id, name, type, learningObjectives: learningObjectives || [], duration: duration || '' });
+    // Return the updated activity data
+    res.json({ 
+      id, 
+      name: name !== undefined ? name : null, 
+      type: type !== undefined ? type : null,
+      learningObjectives: learningObjectives !== undefined ? learningObjectives : [], 
+      duration: duration !== undefined ? duration : '' 
+    });
   } catch (error) {
     console.error('Error updating activity:', error);
     res.status(500).json({ error: 'Failed to update activity' });

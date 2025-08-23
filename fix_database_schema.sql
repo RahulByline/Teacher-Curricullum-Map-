@@ -137,3 +137,33 @@ DESCRIBE units;
 DESCRIBE lessons;
 DESCRIBE stages;
 DESCRIBE activities;
+
+-- Database Migration Script
+-- Add missing learning_objectives and duration fields to grades and books tables
+
+USE curriculum_db;
+
+-- Add learning_objectives and duration columns to grades table if they don't exist
+ALTER TABLE grades 
+ADD COLUMN IF NOT EXISTS learning_objectives JSON DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS duration VARCHAR(100) DEFAULT '';
+
+-- Add learning_objectives and duration columns to books table if they don't exist
+ALTER TABLE books 
+ADD COLUMN IF NOT EXISTS learning_objectives JSON DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS duration VARCHAR(100) DEFAULT '';
+
+-- Update existing sample data with learning objectives and duration
+UPDATE grades 
+SET learning_objectives = '["Master fundamental concepts", "Develop critical thinking skills"]',
+    duration = '1 year'
+WHERE id = 'sample-grade-1';
+
+UPDATE books 
+SET learning_objectives = '["Understand algebraic concepts", "Solve mathematical problems"]',
+    duration = '6 months'
+WHERE id = 'sample-book-1';
+
+-- Show updated table structure
+DESCRIBE grades;
+DESCRIBE books;
