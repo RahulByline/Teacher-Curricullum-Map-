@@ -97,6 +97,7 @@ export function ContentEditor({
   const [newItemName, setNewItemName] = useState('');
   const [newItemType, setNewItemType] = useState('');
   const [newItemDuration, setNewItemDuration] = useState('1');
+  const [newItemDurationUnit, setNewItemDurationUnit] = useState('hours');
   const [newItemLearningObjectives, setNewItemLearningObjectives] = useState<string[]>([]);
   const [newItemLearningObjective, setNewItemLearningObjective] = useState('');
   const [activityAddedMessage, setActivityAddedMessage] = useState('');
@@ -142,12 +143,12 @@ export function ContentEditor({
     setActivityTimeInput('');
     
     // Clear existing timeouts
-    if (gradeTimeTimeoutRef.current) {
-      clearTimeout(gradeTimeTimeoutRef.current);
-    }
-    if (bookTimeTimeoutRef.current) {
-      clearTimeout(bookTimeTimeoutRef.current);
-    }
+      if (gradeTimeTimeoutRef.current) {
+        clearTimeout(gradeTimeTimeoutRef.current);
+      }
+      if (bookTimeTimeoutRef.current) {
+        clearTimeout(bookTimeTimeoutRef.current);
+      }
     if (unitTimeTimeoutRef.current) {
       clearTimeout(unitTimeTimeoutRef.current);
     }
@@ -303,28 +304,29 @@ export function ContentEditor({
           console.error('No curriculum ID found in selectedPath');
           return;
         }
-        onAddGrade(curriculumId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddGrade(curriculumId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'book':
-        onAddBook(curriculumId, gradeId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddBook(curriculumId, gradeId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'unit':
-        onAddUnit(curriculumId, gradeId, bookId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddUnit(curriculumId, gradeId, bookId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'lesson':
-        onAddLesson(curriculumId, gradeId, bookId, unitId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddLesson(curriculumId, gradeId, bookId, unitId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'stage':
-        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newItemName.trim(), newItemLearningObjectives, newItemDuration);
+        onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newItemName.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         break;
       case 'activity':
         const targetStageId = showAddModal.parentId || stageId;
-        onAddActivity(curriculumId, gradeId, bookId, unitId, lessonId, targetStageId, newItemName.trim(), newItemType.trim(), newItemLearningObjectives, newItemDuration);
+        onAddActivity(curriculumId, gradeId, bookId, unitId, lessonId, targetStageId, newItemName.trim(), newItemType.trim(), newItemLearningObjectives, newItemDuration + ' ' + newItemDurationUnit.charAt(0).toUpperCase() + newItemDurationUnit.slice(1));
         // For activities, don't close the modal - allow adding multiple activities
         setActivityAddedMessage(`Activity "${newItemName.trim()}" added successfully!`);
         setNewItemName('');
         setNewItemType('');
-        setNewItemDuration('1');
+                setNewItemDuration('1');
+        setNewItemDurationUnit('hours');
         setNewItemLearningObjectives([]);
         setNewItemLearningObjective('');
         // Clear the success message after 3 seconds
@@ -439,12 +441,12 @@ export function ContentEditor({
   };
 
   const handleAddStage = () => {
-          if (newStage.name && selectedPath.length >= 10) {
-        const [, curriculumId, , gradeId, , bookId, , unitId, , lessonId] = selectedPath;
+    if (newStage.name && selectedPath.length >= 10) {
+      const [, curriculumId, , gradeId, , bookId, , unitId, , lessonId] = selectedPath;
         onAddStage(curriculumId, gradeId, bookId, unitId, lessonId, newStage.name as 'Play' | 'Lead' | 'Apply' | 'Yield', newStage.learningObjectives, newStage.duration);
-        setNewStage({ name: '', learningObjectives: [], duration: '' });
-        setShowAddStage(false);
-      }
+      setNewStage({ name: '', learningObjectives: [], duration: '' });
+      setShowAddStage(false);
+    }
   };
 
   const handleAddActivity = (stageId: string) => {
@@ -1320,33 +1322,33 @@ export function ContentEditor({
                     // Set new timeout for 2 seconds
                     gradeTimeTimeoutRef.current = setTimeout(() => {
                       const value = parseFloat(inputValue);
-                      if (value && !isNaN(value)) {
-                        let timeValue = value;
-                        let timeUnit = 'Minutes';
-                        
-                        // Auto-convert to appropriate unit
-                        if (value >= 60 && value < 1440) {
-                          // Convert to hours if 60+ minutes but less than 24 hours
-                          timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                          timeUnit = 'Hours';
-                        } else if (value >= 1440 && value < 10080) {
-                          // Convert to days if 24+ hours but less than 7 days
-                          timeValue = Math.round((value / 1440) * 10) / 10;
-                          timeUnit = 'Days';
-                        } else if (value >= 10080) {
-                          // Convert to weeks if 7+ days
-                          timeValue = Math.round((value / 10080) * 10) / 10;
-                          timeUnit = 'Weeks';
-                        }
-                        
-                        onUpdateGrade(curriculum.id, grade.id, { 
-                          duration: timeValue + ' ' + timeUnit
-                        });
-                      } else if (inputValue === '') {
-                        onUpdateGrade(curriculum.id, grade.id, { 
-                          duration: ''
-                        });
+                    if (value && !isNaN(value)) {
+                      let timeValue = value;
+                      let timeUnit = 'Minutes';
+                      
+                      // Auto-convert to appropriate unit
+                      if (value >= 60 && value < 1440) {
+                        // Convert to hours if 60+ minutes but less than 24 hours
+                        timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                        timeUnit = 'Hours';
+                      } else if (value >= 1440 && value < 10080) {
+                        // Convert to days if 24+ hours but less than 7 days
+                        timeValue = Math.round((value / 1440) * 10) / 10;
+                        timeUnit = 'Days';
+                      } else if (value >= 10080) {
+                        // Convert to weeks if 7+ days
+                        timeValue = Math.round((value / 10080) * 10) / 10;
+                        timeUnit = 'Weeks';
                       }
+                      
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                          duration: timeValue + ' ' + timeUnit
+                      });
+                      } else if (inputValue === '') {
+                      onUpdateGrade(curriculum.id, grade.id, { 
+                          duration: ''
+                      });
+                    }
                       setGradeTimeInput(''); // Clear the input state after update
                     }, 2000);
                   }}
@@ -1523,40 +1525,7 @@ export function ContentEditor({
                       {book.duration && (
                         <div className="flex items-center space-x-2">
                           <Clock size={16} className="text-blue-500" />
-                          <span className="text-gray-600">
-                            {(() => {
-                              const durationMatch = book.duration.match(/[\d.]+/);
-                              const unitMatch = book.duration.match(/\b(Minutes|Hours|Days|Weeks)\b/);
-                              if (durationMatch && unitMatch) {
-                                const value = parseFloat(durationMatch[0]);
-                                const unit = unitMatch[0];
-                                
-                                // Auto-convert for display
-                                if (unit === 'Minutes' && value >= 60) {
-                                  const hours = Math.round((value / 60) * 10) / 10;
-                                  return `${hours} Hours`;
-                                } else if (unit === 'Minutes' && value >= 1440) {
-                                  const days = Math.round((value / 1440) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Minutes' && value >= 10080) {
-                                  const weeks = Math.round((value / 10080) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Hours' && value >= 24) {
-                                  const days = Math.round((value / 24) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Hours' && value >= 168) {
-                                  const weeks = Math.round((value / 168) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Days' && value >= 7) {
-                                  const weeks = Math.round((value / 7) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                }
-                                
-                                return book.duration;
-                              }
-                              return book.duration;
-                            })()}
-                          </span>
+                          <span className="text-gray-600">{book.duration}</span>
                         </div>
                       )}
                       
@@ -1680,20 +1649,20 @@ export function ContentEditor({
                       const value = parseFloat(inputValue);
                       if (value && !isNaN(value)) {
                         let timeValue = value;
-                        let timeUnit = 'Hours';
+                        let timeUnit = 'Minutes';
                         
                         // Auto-convert to appropriate unit
-                        if (value < 1) {
-                          // If less than 1 hour, convert to minutes
-                          timeValue = Math.round(value * 60);
-                          timeUnit = 'Minutes';
-                        } else if (value >= 24 && value < 168) {
+                        if (value >= 60 && value < 1440) {
+                          // Convert to hours if 60+ minutes but less than 24 hours
+                          timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                          timeUnit = 'Hours';
+                        } else if (value >= 1440 && value < 10080) {
                           // Convert to days if 24+ hours but less than 7 days
-                          timeValue = Math.round((value / 24) * 10) / 10;
+                          timeValue = Math.round((value / 1440) * 10) / 10;
                           timeUnit = 'Days';
-                        } else if (value >= 168) {
+                        } else if (value >= 10080) {
                           // Convert to weeks if 7+ days
-                          timeValue = Math.round((value / 168) * 10) / 10;
+                          timeValue = Math.round((value / 10080) * 10) / 10;
                           timeUnit = 'Weeks';
                         }
                         
@@ -1712,7 +1681,7 @@ export function ContentEditor({
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <select
-                  value={book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Hours'}
+                  value={book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
                   onChange={(e) => {
                     const currentValue = book.duration ? parseFloat(book.duration.match(/[\d.]+/)?.[0] || '0') : 0;
                     const currentUnit = book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
@@ -1875,41 +1844,7 @@ export function ContentEditor({
                       {unit.totalTime && (
                         <div className="flex items-center space-x-2">
                           <Clock size={16} className="text-blue-500" />
-                          <span className="text-gray-600">
-                            {(() => {
-                              const totalTime = unit.totalTime as string;
-                              const durationMatch = totalTime.match(/[\d.]+/);
-                              const unitMatch = totalTime.match(/\b(Minutes|Hours|Days|Weeks)\b/);
-                              if (durationMatch && unitMatch) {
-                                const value = parseFloat(durationMatch[0]);
-                                const unit = unitMatch[0];
-                                
-                                // Auto-convert for display
-                                if (unit === 'Minutes' && value >= 60) {
-                                  const hours = Math.round((value / 60) * 10) / 10;
-                                  return `${hours} Hours`;
-                                } else if (unit === 'Minutes' && value >= 1440) {
-                                  const days = Math.round((value / 1440) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Minutes' && value >= 10080) {
-                                  const weeks = Math.round((value / 10080) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Hours' && value >= 24) {
-                                  const days = Math.round((value / 24) * 10) / 10;
-                                  return `${days} Days`;
-                                } else if (unit === 'Hours' && value >= 168) {
-                                  const weeks = Math.round((value / 168) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                } else if (unit === 'Days' && value >= 7) {
-                                  const weeks = Math.round((value / 7) * 10) / 10;
-                                  return `${weeks} Weeks`;
-                                }
-                                
-                                return totalTime;
-                              }
-                              return totalTime;
-                            })()}
-                          </span>
+                          <span className="text-gray-600">{unit.totalTime}</span>
                         </div>
                       )}
                       
@@ -1919,7 +1854,7 @@ export function ContentEditor({
                           <div className="flex items-center space-x-2 mb-2">
                             <Target size={14} className="text-green-500" />
                             <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
-                          </div>
+                      </div>
                           <ul className="text-xs text-gray-600 space-y-1">
                             {unit.learningObjectives.slice(0, 3).map((objective, idx) => (
                               <li key={idx} className="flex items-start space-x-1">
@@ -2033,20 +1968,20 @@ export function ContentEditor({
                         const value = parseFloat(inputValue);
                         if (value && !isNaN(value)) {
                           let timeValue = value;
-                          let timeUnit = 'Hours';
+                          let timeUnit = 'Minutes';
                           
                           // Auto-convert to appropriate unit
-                          if (value < 1) {
-                            // If less than 1 hour, convert to minutes
-                            timeValue = Math.round(value * 60);
-                            timeUnit = 'Minutes';
-                          } else if (value >= 24 && value < 168) {
+                          if (value >= 60 && value < 1440) {
+                            // Convert to hours if 60+ minutes but less than 24 hours
+                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                            timeUnit = 'Hours';
+                          } else if (value >= 1440 && value < 10080) {
                             // Convert to days if 24+ hours but less than 7 days
-                            timeValue = Math.round((value / 24) * 10) / 10;
+                            timeValue = Math.round((value / 1440) * 10) / 10;
                             timeUnit = 'Days';
-                          } else if (value >= 168) {
+                          } else if (value >= 10080) {
                             // Convert to weeks if 7+ days
-                            timeValue = Math.round((value / 168) * 10) / 10;
+                            timeValue = Math.round((value / 10080) * 10) / 10;
                             timeUnit = 'Weeks';
                           }
                           
@@ -2065,7 +2000,7 @@ export function ContentEditor({
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <select
-                    value={unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Hours'}
+                    value={unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
                     onChange={(e) => {
                       const currentValue = unit.totalTime ? parseFloat(unit.totalTime.match(/[\d.]+/)?.[0] || '0') : 0;
                       const currentUnit = unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
@@ -2188,7 +2123,7 @@ export function ContentEditor({
                         <div className="flex items-center space-x-2 mb-2">
                           <Target size={14} className="text-green-500" />
                           <span className="text-xs font-medium text-gray-700">Learning Objectives:</span>
-                        </div>
+                    </div>
                         <ul className="text-xs text-gray-600 space-y-1">
                           {lesson.learningObjectives.slice(0, 3).map((objective, idx) => (
                             <li key={idx} className="flex items-start space-x-1">
@@ -2745,20 +2680,20 @@ export function ContentEditor({
                         const value = parseFloat(inputValue);
                         if (value && !isNaN(value)) {
                           let timeValue = value;
-                          let timeUnit = 'Hours';
+                          let timeUnit = 'Minutes';
                           
                           // Auto-convert to appropriate unit
-                          if (value < 1) {
-                            // If less than 1 hour, convert to minutes
-                            timeValue = Math.round(value * 60);
-                            timeUnit = 'Minutes';
-                          } else if (value >= 24 && value < 168) {
+                          if (value >= 60 && value < 1440) {
+                            // Convert to hours if 60+ minutes but less than 24 hours
+                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
+                            timeUnit = 'Hours';
+                          } else if (value >= 1440 && value < 10080) {
                             // Convert to days if 24+ hours but less than 7 days
-                            timeValue = Math.round((value / 24) * 10) / 10;
+                            timeValue = Math.round((value / 1440) * 10) / 10;
                             timeUnit = 'Days';
-                          } else if (value >= 168) {
+                          } else if (value >= 10080) {
                             // Convert to weeks if 7+ days
-                            timeValue = Math.round((value / 168) * 10) / 10;
+                            timeValue = Math.round((value / 10080) * 10) / 10;
                             timeUnit = 'Weeks';
                           }
                           
@@ -2777,7 +2712,7 @@ export function ContentEditor({
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <select
-                    value={stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Hours'}
+                    value={stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
                     onChange={(e) => {
                       const currentValue = stage.duration ? parseFloat(stage.duration.match(/[\d.]+/)?.[0] || '0') : 0;
                       const currentUnit = stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
@@ -3103,7 +3038,11 @@ export function ContentEditor({
                       onChange={(e) => setNewItemDuration(e.target.value)}
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                     />
-                    <select className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
+                    <select 
+                      value={newItemDurationUnit}
+                      onChange={(e) => setNewItemDurationUnit(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    >
                       <option value="minutes">Minutes</option>
                       <option value="hours">Hours</option>
                       <option value="days">Days</option>
