@@ -1322,33 +1322,17 @@ export function ContentEditor({
                     // Set new timeout for 2 seconds
                     gradeTimeTimeoutRef.current = setTimeout(() => {
                       const value = parseFloat(inputValue);
-                    if (value && !isNaN(value)) {
-                      let timeValue = value;
-                      let timeUnit = 'Minutes';
-                      
-                      // Auto-convert to appropriate unit
-                      if (value >= 60 && value < 1440) {
-                        // Convert to hours if 60+ minutes but less than 24 hours
-                        timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                        timeUnit = 'Hours';
-                      } else if (value >= 1440 && value < 10080) {
-                        // Convert to days if 24+ hours but less than 7 days
-                        timeValue = Math.round((value / 1440) * 10) / 10;
-                        timeUnit = 'Days';
-                      } else if (value >= 10080) {
-                        // Convert to weeks if 7+ days
-                        timeValue = Math.round((value / 10080) * 10) / 10;
-                        timeUnit = 'Weeks';
-                      }
-                      
-                      onUpdateGrade(curriculum.id, grade.id, { 
-                          duration: timeValue + ' ' + timeUnit
-                      });
+                      if (value && !isNaN(value)) {
+                        // Keep the value as entered without conversion
+                        const timeUnit = grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                        onUpdateGrade(curriculum.id, grade.id, { 
+                          duration: value + ' ' + timeUnit
+                        });
                       } else if (inputValue === '') {
-                      onUpdateGrade(curriculum.id, grade.id, { 
+                        onUpdateGrade(curriculum.id, grade.id, { 
                           duration: ''
-                      });
-                    }
+                        });
+                      }
                       setGradeTimeInput(''); // Clear the input state after update
                     }, 2000);
                   }}
@@ -1359,39 +1343,11 @@ export function ContentEditor({
                   value={grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
                   onChange={(e) => {
                     const currentValue = grade.duration ? parseFloat(grade.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                    const currentUnit = grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
                     const newUnit = e.target.value;
                     
-                    // Convert between units
-                    let newValue = currentValue;
-                    if (currentUnit === 'Minutes' && newUnit === 'Hours') {
-                      newValue = Math.round((currentValue / 60) * 10) / 10;
-                    } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
-                      newValue = Math.round((currentValue / 1440) * 10) / 10;
-                    } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
-                      newValue = Math.round((currentValue / 10080) * 10) / 10;
-                    } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
-                      newValue = Math.round(currentValue * 60);
-                    } else if (currentUnit === 'Hours' && newUnit === 'Days') {
-                      newValue = Math.round((currentValue / 24) * 10) / 10;
-                    } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
-                      newValue = Math.round((currentValue / 168) * 10) / 10;
-                    } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
-                      newValue = Math.round(currentValue * 1440);
-                    } else if (currentUnit === 'Days' && newUnit === 'Hours') {
-                      newValue = Math.round(currentValue * 24);
-                    } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
-                      newValue = Math.round((currentValue / 7) * 10) / 10;
-                    } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
-                      newValue = Math.round(currentValue * 10080);
-                    } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
-                      newValue = Math.round(currentValue * 168);
-                    } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
-                      newValue = Math.round(currentValue * 7);
-                    }
-                    
+                    // Keep the same value, just change the unit
                     onUpdateGrade(curriculum.id, grade.id, { 
-                      duration: newValue + ' ' + newUnit
+                      duration: currentValue + ' ' + newUnit
                     });
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
@@ -1648,26 +1604,10 @@ export function ContentEditor({
                     bookTimeTimeoutRef.current = setTimeout(() => {
                       const value = parseFloat(inputValue);
                       if (value && !isNaN(value)) {
-                        let timeValue = value;
-                        let timeUnit = 'Minutes';
-                        
-                        // Auto-convert to appropriate unit
-                        if (value >= 60 && value < 1440) {
-                          // Convert to hours if 60+ minutes but less than 24 hours
-                          timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                          timeUnit = 'Hours';
-                        } else if (value >= 1440 && value < 10080) {
-                          // Convert to days if 24+ hours but less than 7 days
-                          timeValue = Math.round((value / 1440) * 10) / 10;
-                          timeUnit = 'Days';
-                        } else if (value >= 10080) {
-                          // Convert to weeks if 7+ days
-                          timeValue = Math.round((value / 10080) * 10) / 10;
-                          timeUnit = 'Weeks';
-                        }
-                        
+                        // Keep the value as entered without conversion
+                        const timeUnit = book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
                         onUpdateBook(curriculum.id, grade!.id, book.id, { 
-                          duration: timeValue + ' ' + timeUnit
+                          duration: value + ' ' + timeUnit
                         });
                       } else if (inputValue === '') {
                         onUpdateBook(curriculum.id, grade!.id, book.id, { 
@@ -1684,39 +1624,11 @@ export function ContentEditor({
                   value={book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
                   onChange={(e) => {
                     const currentValue = book.duration ? parseFloat(book.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                    const currentUnit = book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
                     const newUnit = e.target.value;
                     
-                    // Convert between units
-                    let newValue = currentValue;
-                    if (currentUnit === 'Minutes' && newUnit === 'Hours') {
-                      newValue = Math.round((currentValue / 60) * 10) / 10;
-                    } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
-                      newValue = Math.round((currentValue / 1440) * 10) / 10;
-                    } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
-                      newValue = Math.round((currentValue / 10080) * 10) / 10;
-                    } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
-                      newValue = Math.round(currentValue * 60);
-                    } else if (currentUnit === 'Hours' && newUnit === 'Days') {
-                      newValue = Math.round((currentValue / 24) * 10) / 10;
-                    } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
-                      newValue = Math.round((currentValue / 168) * 10) / 10;
-                    } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
-                      newValue = Math.round(currentValue * 1440);
-                    } else if (currentUnit === 'Days' && newUnit === 'Hours') {
-                      newValue = Math.round(currentValue * 24);
-                    } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
-                      newValue = Math.round((currentValue / 7) * 10) / 10;
-                    } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
-                      newValue = Math.round(currentValue * 10080);
-                    } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
-                      newValue = Math.round(currentValue * 168);
-                    } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
-                      newValue = Math.round(currentValue * 7);
-                    }
-                    
+                    // Keep the same value, just change the unit
                     onUpdateBook(curriculum.id, grade!.id, book.id, { 
-                      duration: newValue + ' ' + newUnit
+                      duration: currentValue + ' ' + newUnit
                     });
                   }}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
@@ -1954,90 +1866,46 @@ export function ContentEditor({
                     type="number"
                     step="0.1"
                     value={unitTimeInput !== '' ? unitTimeInput : (unit.totalTime ? (unit.totalTime.match(/[\d.]+/)?.[0] || '') : '')}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      setUnitTimeInput(inputValue);
-                      
-                      // Clear existing timeout
-                      if (unitTimeTimeoutRef.current) {
-                        clearTimeout(unitTimeTimeoutRef.current);
+                                      onChange={(e) => {
+                    const inputValue = e.target.value;
+                    setUnitTimeInput(inputValue);
+                    
+                    // Clear existing timeout
+                    if (unitTimeTimeoutRef.current) {
+                      clearTimeout(unitTimeTimeoutRef.current);
+                    }
+                    
+                    // Set new timeout for 2 seconds
+                    unitTimeTimeoutRef.current = setTimeout(() => {
+                      const value = parseFloat(inputValue);
+                      if (value && !isNaN(value)) {
+                        // Keep the value as entered without conversion
+                        const timeUnit = unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
+                        onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
+                          totalTime: value + ' ' + timeUnit
+                        });
+                      } else if (inputValue === '') {
+                        onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
+                          totalTime: ''
+                        });
                       }
-                      
-                      // Set new timeout for 2 seconds
-                      unitTimeTimeoutRef.current = setTimeout(() => {
-                        const value = parseFloat(inputValue);
-                        if (value && !isNaN(value)) {
-                          let timeValue = value;
-                          let timeUnit = 'Minutes';
-                          
-                          // Auto-convert to appropriate unit
-                          if (value >= 60 && value < 1440) {
-                            // Convert to hours if 60+ minutes but less than 24 hours
-                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                            timeUnit = 'Hours';
-                          } else if (value >= 1440 && value < 10080) {
-                            // Convert to days if 24+ hours but less than 7 days
-                            timeValue = Math.round((value / 1440) * 10) / 10;
-                            timeUnit = 'Days';
-                          } else if (value >= 10080) {
-                            // Convert to weeks if 7+ days
-                            timeValue = Math.round((value / 10080) * 10) / 10;
-                            timeUnit = 'Weeks';
-                          }
-                          
-                          onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
-                            totalTime: timeValue + ' ' + timeUnit
-                          });
-                        } else if (inputValue === '') {
-                          onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
-                            totalTime: ''
-                          });
-                        }
-                        setUnitTimeInput(''); // Clear the input state after update
-                      }, 2000);
-                    }}
+                      setUnitTimeInput(''); // Clear the input state after update
+                    }, 2000);
+                  }}
                     placeholder="0.0"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <select
                     value={unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                    onChange={(e) => {
-                      const currentValue = unit.totalTime ? parseFloat(unit.totalTime.match(/[\d.]+/)?.[0] || '0') : 0;
-                      const currentUnit = unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                      const newUnit = e.target.value;
-                      
-                      // Convert between units
-                      let newValue = currentValue;
-                      if (currentUnit === 'Minutes' && newUnit === 'Hours') {
-                        newValue = Math.round((currentValue / 60) * 10) / 10;
-                      } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
-                        newValue = Math.round((currentValue / 1440) * 10) / 10;
-                      } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 10080) * 10) / 10;
-                      } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 60);
-                      } else if (currentUnit === 'Hours' && newUnit === 'Days') {
-                        newValue = Math.round((currentValue / 24) * 10) / 10;
-                      } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 168) * 10) / 10;
-                      } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 1440);
-                      } else if (currentUnit === 'Days' && newUnit === 'Hours') {
-                        newValue = Math.round(currentValue * 24);
-                      } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 7) * 10) / 10;
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 10080);
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
-                        newValue = Math.round(currentValue * 168);
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
-                        newValue = Math.round(currentValue * 7);
-                      }
-                      
-                      onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
-                        totalTime: newValue + ' ' + newUnit
-                      });
-                    }}
+                                      onChange={(e) => {
+                    const currentValue = unit.totalTime ? parseFloat(unit.totalTime.match(/[\d.]+/)?.[0] || '0') : 0;
+                    const newUnit = e.target.value;
+                    
+                    // Keep the same value, just change the unit
+                    onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
+                      totalTime: currentValue + ' ' + newUnit
+                    });
+                  }}
                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                   >
                     <option value="Minutes">Minutes</option>
