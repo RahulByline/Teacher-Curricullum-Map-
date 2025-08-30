@@ -117,72 +117,12 @@ export function ContentEditor({
   const [newBookLearningObjective, setNewBookLearningObjective] = useState('');
   
   // Debounced time input states
-  const [gradeTimeInput, setGradeTimeInput] = useState('');
-  const [bookTimeInput, setBookTimeInput] = useState('');
-  const [unitTimeInput, setUnitTimeInput] = useState('');
-  const [lessonTimeInput, setLessonTimeInput] = useState('');
-  const [stageTimeInput, setStageTimeInput] = useState('');
-  const [activityTimeInput, setActivityTimeInput] = useState('');
-  const gradeTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const bookTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const unitTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lessonTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const stageTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const activityTimeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+
   
   const { settings, updateSettings } = useSettings();
 
-  // Cleanup timeouts on unmount or path change
-  useEffect(() => {
-    // Clear input states when path changes
-    setGradeTimeInput('');
-    setBookTimeInput('');
-    setUnitTimeInput('');
-    setLessonTimeInput('');
-    setStageTimeInput('');
-    setActivityTimeInput('');
-    
-    // Clear existing timeouts
-      if (gradeTimeTimeoutRef.current) {
-        clearTimeout(gradeTimeTimeoutRef.current);
-      }
-      if (bookTimeTimeoutRef.current) {
-        clearTimeout(bookTimeTimeoutRef.current);
-      }
-    if (unitTimeTimeoutRef.current) {
-      clearTimeout(unitTimeTimeoutRef.current);
-    }
-    if (lessonTimeTimeoutRef.current) {
-      clearTimeout(lessonTimeTimeoutRef.current);
-    }
-    if (stageTimeTimeoutRef.current) {
-      clearTimeout(stageTimeTimeoutRef.current);
-    }
-    if (activityTimeTimeoutRef.current) {
-      clearTimeout(activityTimeTimeoutRef.current);
-    }
-    
-    return () => {
-      if (gradeTimeTimeoutRef.current) {
-        clearTimeout(gradeTimeTimeoutRef.current);
-      }
-      if (bookTimeTimeoutRef.current) {
-        clearTimeout(bookTimeTimeoutRef.current);
-      }
-      if (unitTimeTimeoutRef.current) {
-        clearTimeout(unitTimeTimeoutRef.current);
-      }
-      if (lessonTimeTimeoutRef.current) {
-        clearTimeout(lessonTimeTimeoutRef.current);
-      }
-      if (stageTimeTimeoutRef.current) {
-        clearTimeout(stageTimeTimeoutRef.current);
-      }
-      if (activityTimeTimeoutRef.current) {
-        clearTimeout(activityTimeTimeoutRef.current);
-      }
-    };
-  }, [selectedPath]);
+
 
   const handleAddCurriculum = async () => {
     if (newCurriculumName.trim()) {
@@ -1300,65 +1240,11 @@ export function ContentEditor({
           {/* Content Layout - Full Width */}
           <div className="space-y-8">
             {/* Total Time Section */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                <Clock size={14} className="mr-1" />
-                Total Time
-              </h4>
-              <div className="flex space-x-2">
-                <input
-                  type="number"
-                  step="0.1"
-                  value={gradeTimeInput !== '' ? gradeTimeInput : (grade.duration ? (grade.duration.match(/[\d.]+/)?.[0] || '') : '')}
-                  onChange={(e) => {
-                    const inputValue = e.target.value;
-                    setGradeTimeInput(inputValue);
-                    
-                    // Clear existing timeout
-                    if (gradeTimeTimeoutRef.current) {
-                      clearTimeout(gradeTimeTimeoutRef.current);
-                    }
-                    
-                    // Set new timeout for 2 seconds
-                    gradeTimeTimeoutRef.current = setTimeout(() => {
-                      const value = parseFloat(inputValue);
-                      if (value && !isNaN(value)) {
-                        // Keep the value as entered without conversion
-                        const timeUnit = grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                        onUpdateGrade(curriculum.id, grade.id, { 
-                          duration: value + ' ' + timeUnit
-                        });
-                      } else if (inputValue === '') {
-                        onUpdateGrade(curriculum.id, grade.id, { 
-                          duration: ''
-                        });
-                      }
-                      setGradeTimeInput(''); // Clear the input state after update
-                    }, 2000);
-                  }}
-                  placeholder="0.0"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <select
-                  value={grade.duration ? (grade.duration.includes('Hours') ? 'Hours' : grade.duration.includes('Days') ? 'Days' : grade.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                  onChange={(e) => {
-                    const currentValue = grade.duration ? parseFloat(grade.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                    const newUnit = e.target.value;
-                    
-                    // Keep the same value, just change the unit
-                    onUpdateGrade(curriculum.id, grade.id, { 
-                      duration: currentValue + ' ' + newUnit
-                    });
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                >
-                  <option value="Minutes">Minutes</option>
-                  <option value="Hours">Hours</option>
-                  <option value="Days">Days</option>
-                  <option value="Weeks">Weeks</option>
-                </select>
-              </div>
-            </div>
+            <TimeInput
+              value={grade.duration || ''}
+              onChange={(value) => onUpdateGrade(curriculum.id, grade.id, { duration: value })}
+              label="Total Time"
+            />
             
             {/* Learning Objectives Section */}
             <div>
@@ -1581,65 +1467,11 @@ export function ContentEditor({
           {/* Content Layout - Full Width */}
           <div className="space-y-8">
             {/* Total Time Section */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                <Clock size={14} className="mr-1" />
-                Total Time
-              </h4>
-              <div className="flex space-x-2">
-                <input
-                  type="number"
-                  step="0.1"
-                  value={bookTimeInput !== '' ? bookTimeInput : (book.duration ? (book.duration.match(/[\d.]+/)?.[0] || '') : '')}
-                  onChange={(e) => {
-                    const inputValue = e.target.value;
-                    setBookTimeInput(inputValue);
-                    
-                    // Clear existing timeout
-                    if (bookTimeTimeoutRef.current) {
-                      clearTimeout(bookTimeTimeoutRef.current);
-                    }
-                    
-                    // Set new timeout for 2 seconds
-                    bookTimeTimeoutRef.current = setTimeout(() => {
-                      const value = parseFloat(inputValue);
-                      if (value && !isNaN(value)) {
-                        // Keep the value as entered without conversion
-                        const timeUnit = book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                        onUpdateBook(curriculum.id, grade!.id, book.id, { 
-                          duration: value + ' ' + timeUnit
-                        });
-                      } else if (inputValue === '') {
-                        onUpdateBook(curriculum.id, grade!.id, book.id, { 
-                          duration: ''
-                        });
-                      }
-                      setBookTimeInput(''); // Clear the input state after update
-                    }, 2000);
-                  }}
-                  placeholder="0.0"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <select
-                  value={book.duration ? (book.duration.includes('Hours') ? 'Hours' : book.duration.includes('Days') ? 'Days' : book.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                  onChange={(e) => {
-                    const currentValue = book.duration ? parseFloat(book.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                    const newUnit = e.target.value;
-                    
-                    // Keep the same value, just change the unit
-                    onUpdateBook(curriculum.id, grade!.id, book.id, { 
-                      duration: currentValue + ' ' + newUnit
-                    });
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                >
-                  <option value="Minutes">Minutes</option>
-                  <option value="Hours">Hours</option>
-                  <option value="Days">Days</option>
-                  <option value="Weeks">Weeks</option>
-                </select>
-              </div>
-            </div>
+            <TimeInput
+              value={book.duration || ''}
+              onChange={(value) => onUpdateBook(curriculum.id, grade!.id, book.id, { duration: value })}
+              label="Total Time"
+            />
             
             {/* Learning Objectives Section */}
             <div>
@@ -1856,65 +1688,11 @@ export function ContentEditor({
           {/* Unit Details */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <Clock size={14} className="mr-1" />
-                  Total Time
-                </h4>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={unitTimeInput !== '' ? unitTimeInput : (unit.totalTime ? (unit.totalTime.match(/[\d.]+/)?.[0] || '') : '')}
-                                      onChange={(e) => {
-                    const inputValue = e.target.value;
-                    setUnitTimeInput(inputValue);
-                    
-                    // Clear existing timeout
-                    if (unitTimeTimeoutRef.current) {
-                      clearTimeout(unitTimeTimeoutRef.current);
-                    }
-                    
-                    // Set new timeout for 2 seconds
-                    unitTimeTimeoutRef.current = setTimeout(() => {
-                      const value = parseFloat(inputValue);
-                      if (value && !isNaN(value)) {
-                        // Keep the value as entered without conversion
-                        const timeUnit = unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                        onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
-                          totalTime: value + ' ' + timeUnit
-                        });
-                      } else if (inputValue === '') {
-                        onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
-                          totalTime: ''
-                        });
-                      }
-                      setUnitTimeInput(''); // Clear the input state after update
-                    }, 2000);
-                  }}
-                    placeholder="0.0"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <select
-                    value={unit.totalTime ? (unit.totalTime.includes('Hours') ? 'Hours' : unit.totalTime.includes('Days') ? 'Days' : unit.totalTime.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                                      onChange={(e) => {
-                    const currentValue = unit.totalTime ? parseFloat(unit.totalTime.match(/[\d.]+/)?.[0] || '0') : 0;
-                    const newUnit = e.target.value;
-                    
-                    // Keep the same value, just change the unit
-                    onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { 
-                      totalTime: currentValue + ' ' + newUnit
-                    });
-                  }}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    <option value="Minutes">Minutes</option>
-                    <option value="Hours">Hours</option>
-                    <option value="Days">Days</option>
-                    <option value="Weeks">Weeks</option>
-                  </select>
-                </div>
-              </div>
+              <TimeInput
+                value={unit.totalTime || ''}
+                onChange={(value) => onUpdateUnit(curriculum.id, grade!.id, book!.id, unit.id, { totalTime: value })}
+                label="Total Time"
+              />
               
               <div>
                 <LearningObjectivesEditor
@@ -2084,109 +1862,11 @@ export function ContentEditor({
           {/* Lesson Details */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <Clock size={14} className="mr-1" />
-                  Duration
-                </h4>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={lessonTimeInput !== '' ? lessonTimeInput : (lesson.duration ? (lesson.duration.match(/[\d.]+/)?.[0] || '') : '')}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      setLessonTimeInput(inputValue);
-                      
-                      // Clear existing timeout
-                      if (lessonTimeTimeoutRef.current) {
-                        clearTimeout(lessonTimeTimeoutRef.current);
-                      }
-                      
-                      // Set new timeout for 2 seconds
-                      lessonTimeTimeoutRef.current = setTimeout(() => {
-                        const value = parseFloat(inputValue);
-                        if (value && !isNaN(value)) {
-                          let timeValue = value;
-                          let timeUnit = 'Minutes';
-                          
-                          // Auto-convert to appropriate unit
-                          if (value >= 60 && value < 1440) {
-                            // Convert to hours if 60+ minutes but less than 24 hours
-                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                            timeUnit = 'Hours';
-                          } else if (value >= 1440 && value < 10080) {
-                            // Convert to days if 24+ hours but less than 7 days
-                            timeValue = Math.round((value / 1440) * 10) / 10;
-                            timeUnit = 'Days';
-                          } else if (value >= 10080) {
-                            // Convert to weeks if 7+ days
-                            timeValue = Math.round((value / 10080) * 10) / 10;
-                            timeUnit = 'Weeks';
-                          }
-                          
-                          onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { 
-                            duration: timeValue + ' ' + timeUnit
-                          });
-                        } else if (inputValue === '') {
-                          onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { 
-                            duration: ''
-                          });
-                        }
-                        setLessonTimeInput(''); // Clear the input state after update
-                      }, 2000);
-                    }}
-                    placeholder="0.0"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <select
-                    value={lesson.duration ? (lesson.duration.includes('Hours') ? 'Hours' : lesson.duration.includes('Days') ? 'Days' : lesson.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                    onChange={(e) => {
-                      const currentValue = lesson.duration ? parseFloat(lesson.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                      const currentUnit = lesson.duration ? (lesson.duration.includes('Hours') ? 'Hours' : lesson.duration.includes('Days') ? 'Days' : lesson.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                      const newUnit = e.target.value;
-                      
-                      // Convert between units
-                      let newValue = currentValue;
-                      if (currentUnit === 'Minutes' && newUnit === 'Hours') {
-                        newValue = Math.round((currentValue / 60) * 10) / 10;
-                      } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
-                        newValue = Math.round((currentValue / 1440) * 10) / 10;
-                      } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 10080) * 10) / 10;
-                      } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 60);
-                      } else if (currentUnit === 'Hours' && newUnit === 'Days') {
-                        newValue = Math.round((currentValue / 24) * 10) / 10;
-                      } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 168) * 10) / 10;
-                      } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 1440);
-                      } else if (currentUnit === 'Days' && newUnit === 'Hours') {
-                        newValue = Math.round(currentValue * 24);
-                      } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 7) * 10) / 10;
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 10080);
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
-                        newValue = Math.round(currentValue * 168);
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
-                        newValue = Math.round(currentValue * 7);
-                      }
-                      
-                      onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { 
-                        duration: newValue + ' ' + newUnit
-                      });
-                    }}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    <option value="Minutes">Minutes</option>
-                    <option value="Hours">Hours</option>
-                    <option value="Days">Days</option>
-                    <option value="Weeks">Weeks</option>
-                  </select>
-                </div>
-              </div>
+              <TimeInput
+                value={lesson.duration || ''}
+                onChange={(value) => onUpdateLesson(curriculum.id, grade!.id, book!.id, unit!.id, lesson.id, { duration: value })}
+                label="Duration"
+              />
               
               <div>
                 <LearningObjectivesEditor
@@ -2524,109 +2204,11 @@ export function ContentEditor({
           {/* Stage Details */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <div className="space-y-6">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                  <Clock size={14} className="mr-1" />
-                  Duration
-                </h4>
-                <div className="flex space-x-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={stageTimeInput !== '' ? stageTimeInput : (stage.duration ? (stage.duration.match(/[\d.]+/)?.[0] || '') : '')}
-                    onChange={(e) => {
-                      const inputValue = e.target.value;
-                      setStageTimeInput(inputValue);
-                      
-                      // Clear existing timeout
-                      if (stageTimeTimeoutRef.current) {
-                        clearTimeout(stageTimeTimeoutRef.current);
-                      }
-                      
-                      // Set new timeout for 2 seconds
-                      stageTimeTimeoutRef.current = setTimeout(() => {
-                        const value = parseFloat(inputValue);
-                        if (value && !isNaN(value)) {
-                          let timeValue = value;
-                          let timeUnit = 'Minutes';
-                          
-                          // Auto-convert to appropriate unit
-                          if (value >= 60 && value < 1440) {
-                            // Convert to hours if 60+ minutes but less than 24 hours
-                            timeValue = Math.round((value / 60) * 10) / 10; // Round to 1 decimal place
-                            timeUnit = 'Hours';
-                          } else if (value >= 1440 && value < 10080) {
-                            // Convert to days if 24+ hours but less than 7 days
-                            timeValue = Math.round((value / 1440) * 10) / 10;
-                            timeUnit = 'Days';
-                          } else if (value >= 10080) {
-                            // Convert to weeks if 7+ days
-                            timeValue = Math.round((value / 10080) * 10) / 10;
-                            timeUnit = 'Weeks';
-                          }
-                          
-                          onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { 
-                            duration: timeValue + ' ' + timeUnit
-                          });
-                        } else if (inputValue === '') {
-                          onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { 
-                            duration: ''
-                          });
-                        }
-                        setStageTimeInput(''); // Clear the input state after update
-                      }, 2000);
-                    }}
-                    placeholder="0.0"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <select
-                    value={stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                    onChange={(e) => {
-                      const currentValue = stage.duration ? parseFloat(stage.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                      const currentUnit = stage.duration ? (stage.duration.includes('Hours') ? 'Hours' : stage.duration.includes('Days') ? 'Days' : stage.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                      const newUnit = e.target.value;
-                      
-                      // Convert between units
-                      let newValue = currentValue;
-                      if (currentUnit === 'Minutes' && newUnit === 'Hours') {
-                        newValue = Math.round((currentValue / 60) * 10) / 10;
-                      } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
-                        newValue = Math.round((currentValue / 1440) * 10) / 10;
-                      } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 10080) * 10) / 10;
-                      } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 60);
-                      } else if (currentUnit === 'Hours' && newUnit === 'Days') {
-                        newValue = Math.round((currentValue / 24) * 10) / 10;
-                      } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 168) * 10) / 10;
-                      } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 1440);
-                      } else if (currentUnit === 'Days' && newUnit === 'Hours') {
-                        newValue = Math.round(currentValue * 24);
-                      } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
-                        newValue = Math.round((currentValue / 7) * 10) / 10;
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
-                        newValue = Math.round(currentValue * 10080);
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
-                        newValue = Math.round(currentValue * 168);
-                      } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
-                        newValue = Math.round(currentValue * 7);
-                      }
-                      
-                      onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { 
-                        duration: newValue + ' ' + newUnit
-                      });
-                    }}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                  >
-                    <option value="Minutes">Minutes</option>
-                    <option value="Hours">Hours</option>
-                    <option value="Days">Days</option>
-                    <option value="Weeks">Weeks</option>
-                  </select>
-                </div>
-              </div>
+              <TimeInput
+                value={stage.duration || ''}
+                onChange={(value) => onUpdateStage(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, { duration: value })}
+                label="Duration"
+              />
               
               <div>
                 <LearningObjectivesEditor
@@ -2686,106 +2268,11 @@ export function ContentEditor({
                   <p className="text-gray-600 text-sm mb-4">{activity.type}</p>
                   
                   <div className="mb-4">
-                    <h5 className="text-xs font-semibold text-gray-700 mb-1 flex items-center">
-                      <Clock size={12} className="mr-1" />
-                      Duration
-                    </h5>
-                    <div className="flex space-x-1">
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={activityTimeInput !== '' ? activityTimeInput : (activity.duration ? (activity.duration.match(/[\d.]+/)?.[0] || '') : '')}
-                        onChange={(e) => {
-                          const inputValue = e.target.value;
-                          setActivityTimeInput(inputValue);
-                          
-                          // Clear existing timeout
-                          if (activityTimeTimeoutRef.current) {
-                            clearTimeout(activityTimeTimeoutRef.current);
-                          }
-                          
-                          // Set new timeout for 2 seconds
-                          activityTimeTimeoutRef.current = setTimeout(() => {
-                            const value = parseFloat(inputValue);
-                            if (value && !isNaN(value)) {
-                              let timeValue = value;
-                              let timeUnit = 'Minutes';
-                              
-                              // Auto-convert to appropriate unit
-                              if (value >= 60 && value < 1440) {
-                                timeValue = Math.round((value / 60) * 10) / 10;
-                                timeUnit = 'Hours';
-                              } else if (value >= 1440 && value < 10080) {
-                                timeValue = Math.round((value / 1440) * 10) / 10;
-                                timeUnit = 'Days';
-                              } else if (value >= 10080) {
-                                timeValue = Math.round((value / 10080) * 10) / 10;
-                                timeUnit = 'Weeks';
-                              }
-                              
-                              onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { 
-                                duration: timeValue + ' ' + timeUnit
-                              });
-                            } else if (inputValue === '') {
-                              onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { 
-                                duration: ''
-                              });
-                            }
-                            setActivityTimeInput('');
-                          }, 2000);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder="0.0"
-                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-pink-500 focus:border-transparent"
-                      />
-                      <select
-                        value={activity.duration ? (activity.duration.includes('Hours') ? 'Hours' : activity.duration.includes('Days') ? 'Days' : activity.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes'}
-                        onChange={(e) => {
-                          const currentValue = activity.duration ? parseFloat(activity.duration.match(/[\d.]+/)?.[0] || '0') : 0;
-                          const currentUnit = activity.duration ? (activity.duration.includes('Hours') ? 'Hours' : activity.duration.includes('Days') ? 'Days' : activity.duration.includes('Weeks') ? 'Weeks' : 'Minutes') : 'Minutes';
-                          const newUnit = e.target.value;
-                          
-                          // Convert between units
-                          let newValue = currentValue;
-                          if (currentUnit === 'Minutes' && newUnit === 'Hours') {
-                            newValue = Math.round((currentValue / 60) * 10) / 10;
-                          } else if (currentUnit === 'Minutes' && newUnit === 'Days') {
-                            newValue = Math.round((currentValue / 1440) * 10) / 10;
-                          } else if (currentUnit === 'Minutes' && newUnit === 'Weeks') {
-                            newValue = Math.round((currentValue / 10080) * 10) / 10;
-                          } else if (currentUnit === 'Hours' && newUnit === 'Minutes') {
-                            newValue = Math.round(currentValue * 60);
-                          } else if (currentUnit === 'Hours' && newUnit === 'Days') {
-                            newValue = Math.round((currentValue / 24) * 10) / 10;
-                          } else if (currentUnit === 'Hours' && newUnit === 'Weeks') {
-                            newValue = Math.round((currentValue / 168) * 10) / 10;
-                          } else if (currentUnit === 'Days' && newUnit === 'Minutes') {
-                            newValue = Math.round(currentValue * 1440);
-                          } else if (currentUnit === 'Days' && newUnit === 'Hours') {
-                            newValue = Math.round(currentValue * 24);
-                          } else if (currentUnit === 'Days' && newUnit === 'Weeks') {
-                            newValue = Math.round((currentValue / 7) * 10) / 10;
-                          } else if (currentUnit === 'Weeks' && newUnit === 'Minutes') {
-                            newValue = Math.round(currentValue * 10080);
-                          } else if (currentUnit === 'Weeks' && newUnit === 'Hours') {
-                            newValue = Math.round(currentValue * 168);
-                          } else if (currentUnit === 'Weeks' && newUnit === 'Days') {
-                            newValue = Math.round(currentValue * 7);
-                          }
-                          
-                          onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { 
-                            duration: newValue + ' ' + newUnit
-                          });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-pink-500 focus:border-transparent bg-white"
-                      >
-                        <option value="Minutes">Min</option>
-                        <option value="Hours">Hr</option>
-                        <option value="Days">Day</option>
-                        <option value="Weeks">Wk</option>
-                      </select>
-                    </div>
+                    <TimeInput
+                      value={activity.duration || ''}
+                      onChange={(value) => onUpdateActivity(curriculum.id, grade!.id, book!.id, unit!.id, lesson!.id, stage.id, activity.id, { duration: value })}
+                      label="Duration"
+                    />
                   </div>
                   
                   {/* Learning Objectives Editor */}
